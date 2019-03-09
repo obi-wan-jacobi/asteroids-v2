@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "allowSyntheticDefaultImports": true,
+        "outDir": "./build",
+        "rootDir": "./src",
+        "allowJs": false,
+        "target": "esnext",
+        "module": "esnext",
+        "sourceMap": true,
+        "baseUrl": ".",
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "moduleResolution": "node",
+        "noUnusedLocals": true,
+        "types": [
+            "jest",
+            "jquery",
+            "node",
+            "sinon",
+            "uuid",
+        ]
+    },
+    "include": [
+        "src/**/*.ts",
+    ],
+    "exclude": [
+        "src/tests"
+    ]
+}
