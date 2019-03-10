@@ -1,5 +1,6 @@
-import IAdaptedKeyboardEvent from './IAdaptedKeyboardEvent';
+import IKeyboardHandler from './IKeyboardHandler';
 
 export default interface IKeyboardAdaptor {
-    once(handler: (keyboardEvent: IAdaptedKeyboardEvent) => void): void;
+    once(): void;
+    handler(handler: IKeyboardHandler): void;
 }

@@ -1,0 +1,8 @@
+import IEntity from './IEntity';
+import { Ctor, Optional } from '../../framework/types';
+
+export interface IEntityFactory {
+    create<T extends IEntity, TArg>(EntityCtor: Ctor<T, Optional<TArg>>, arg?: TArg): T;
+    destroy(entity: IEntity): void;
+    forEach(fn: (entity: IEntity) => void): void;
+}

@@ -1,5 +1,6 @@
-import IAdaptedMouseEvent from './IAdaptedMouseEvent';
+import IMouseHandler from './IMouseHandler';
 
 export default interface IMouseAdaptor {
-    once(handler: (mouseEvent: IAdaptedMouseEvent) => void): void;
+    once(): void;
+    handler(handler: IMouseHandler): void;
 }

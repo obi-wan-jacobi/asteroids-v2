@@ -1,11 +1,6 @@
+import IUnique from '../interfaces/IUnique';
 
 const uuidv1 = require('uuid/v1');
-
-export interface IUnique {
-
-    id: string;
-
-}
 
 export default abstract class Unique implements IUnique {
 

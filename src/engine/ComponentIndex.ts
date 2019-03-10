@@ -1,17 +1,13 @@
 import Dictionary from '../framework/data-structures/Dictionary';
 import IComponent from './interfaces/IComponent';
+import IComponentIndex from './interfaces/IComponentIndex';
+import IDictionary from '../framework/interfaces/IDictionary';
 import IEntity from './interfaces/IEntity';
 import { Ctor } from '../framework/types';
 
-export interface IComponentIndex {
-    add(ComponentCtor: Ctor<IComponent<any>, any>): (target: IEntity) => void;
-    remove(ComponentCtor: Ctor<IComponent<any>, any>): (target: IEntity) => void;
-    get(ComponentCtor: Ctor<IComponent<any>, any>): Dictionary<IEntity>;
-    forEach(fn: (entity: IEntity) => void): void;
-}
 export default class ComponentIndex implements IComponentIndex {
 
-    private __index: Dictionary<Dictionary<IEntity>>;
+    private __index: IDictionary<IDictionary<IEntity>>;
 
     constructor() {
         this.__index = new Dictionary();
@@ -43,7 +39,7 @@ export default class ComponentIndex implements IComponentIndex {
         };
     }
 
-    public get(ComponentCtor: Ctor<IComponent<any>, any>): Dictionary<IEntity> {
+    public get(ComponentCtor: Ctor<IComponent<any>, any>): IDictionary<IEntity> {
         return this.__index.read(ComponentCtor.name);
     }
 

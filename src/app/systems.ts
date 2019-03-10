@@ -1,45 +1,40 @@
-import { IUnique } from '../framework/data-structures/Container';
-import IComponent from '../engine/interfaces/IComponent';
 import IEntity from '../engine/interfaces/IEntity';
-import Unique from '../framework/abstracts/Unique';
-import { Acceleration, Pose, Velocity } from './objects';
+import IViewportAdaptor from '../engine/interfaces/IViewportAdaptor';
+import { OnlyIfEntityHas, System } from '../engine/abstracts/System';
+import { Ephemeral, Flair, Label, Pose, Shape, Steering, Thrust, Velocity } from './components';
+import { transformShape } from './geometry';
 
-export function OnlyIfEntityHas<T>(Component: new (data: T) => IComponent<T>): any {
-    return (target: System, key: string, descriptor: PropertyDescriptor) => {
-        const method = descriptor.value;
-        descriptor.value = function(entity: IEntity): void {
-            if (!entity.copy(Component)) {
-                return;
-            }
-            method(entity);
-        };
-    };
-}
+export class EphemeralSystem extends System {
 
-export interface ISystem extends IUnique {
-
-    once(entity: IEntity): void;
-
-}
-
-export abstract class System extends Unique implements ISystem {
-
-    public abstract once(entity: IEntity): void;
-
-}
-
-export class AccelerationSystem extends System {
-
-    @OnlyIfEntityHas(Velocity)
-    @OnlyIfEntityHas(Acceleration)
+    @OnlyIfEntityHas(Ephemeral)
     public once(entity: IEntity): void {
-        const velocity = entity.copy(Velocity);
-        const acceleration = entity.copy(Acceleration);
-        entity.mutate(Velocity)({
-            x: velocity.x + acceleration.x,
-            y: velocity.y + acceleration.y,
-            w: velocity.w + acceleration.w,
+        const { remaining } = entity.copy(Ephemeral);
+        if (remaining === 1) {
+            return entity.destroy();
+        }
+        entity.mutate(Ephemeral)({
+            remaining: remaining - 1,
         });
+    }
+
+}
+
+export class ThrustSystem extends System {
+
+    @OnlyIfEntityHas(Thrust)
+    public once(entity: IEntity): void {
+        const pose = entity.copy(Pose);
+        const thrust = entity.copy(Thrust);
+        let velocity = entity.copy(Velocity);
+        if (thrust.state === 'ACCELERATE') {
+            entity.mutate(Thrust)(thrust);
+            velocity = {
+                x: velocity.x + thrust.increment * Math.cos(pose.a),
+                y: velocity.y + thrust.increment * Math.sin(pose.a),
+                w: velocity.w,
+            };
+            return entity.mutate(Velocity)(velocity);
+        }
     }
 
 }
@@ -76,7 +71,7 @@ export class BoundarySytem extends System {
             x = this.__boundary.minX;
         }
         if (y < this.__boundary.minY) {
-            y = this.__boundary.maxX;
+            y = this.__boundary.maxY;
         }
         if (y > this.__boundary.maxY) {
             y = this.__boundary.minY;
@@ -84,4 +79,93 @@ export class BoundarySytem extends System {
         a = a;
         entity.mutate(Pose)({ x, y, a });
     }
+}
+
+export class SteeringSystem extends System {
+
+    @OnlyIfEntityHas(Steering)
+    public once(entity: IEntity): void {
+        const steering = entity.copy(Steering);
+        if (steering.direction === 'LEFT') {
+            return turnLeft(entity);
+        }
+        if (steering.direction === 'RIGHT') {
+            return turnRight(entity);
+        }
+    }
+
+}
+
+const turnLeft = (ship: IEntity): void => {
+    const pose = ship.copy(Pose);
+    pose.a += - Math.PI / 48;
+    ship.mutate(Pose)(pose);
+};
+const turnRight = (ship: IEntity): void => {
+    const pose = ship.copy(Pose);
+    pose.a += Math.PI / 48;
+    ship.mutate(Pose)(pose);
+};
+
+export abstract class DrawSystem extends System {
+
+    protected _viewport: IViewportAdaptor;
+
+    constructor({ viewport }: { viewport: IViewportAdaptor }) {
+        super();
+        this._viewport = viewport;
+    }
+
+}
+
+export class ShapeSystem extends DrawSystem {
+
+    constructor({ viewport }: { viewport: IViewportAdaptor }) {
+        super({ viewport });
+    }
+
+    @OnlyIfEntityHas(Shape)
+    public once(entity: IEntity): void {
+        const transform = transformShape({ shape: entity.copy(Shape), pose: entity.copy(Pose) });
+        this._viewport.drawShape(transform);
+    }
+}
+
+export class LabelSystem extends DrawSystem {
+
+    constructor({ viewport }: { viewport: IViewportAdaptor }) {
+        super({ viewport });
+    }
+
+    @OnlyIfEntityHas(Label)
+    public once(entity: IEntity): void {
+        this._viewport.drawLabel({
+            pose: entity.copy(Pose),
+            label: entity.copy(Label),
+        });
+    }
+}
+
+export class FlairSystem extends DrawSystem {
+
+    constructor({ viewport }: { viewport: IViewportAdaptor }) {
+        super({ viewport });
+    }
+
+    @OnlyIfEntityHas(Flair)
+    public once(entity: IEntity): void {
+        const pose = entity.copy(Pose);
+        const flair = entity.copy(Flair);
+        const shape = { points: [
+            { x: flair.offset.x, y: - flair.width / 2 },
+            { x: - flair.length, y: 0 },
+            { x: flair.offset.x, y: flair.width / 2 },
+        ]};
+        const transform = transformShape({ shape, pose });
+        this._viewport.drawLine({
+            points: transform.points,
+            rendering: { colour: 'red' },
+        });
+    }
+
 }

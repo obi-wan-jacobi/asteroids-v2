@@ -1,4 +1,4 @@
-import { IMinMaxBoundary2D, IPoint, IPose, IShape } from './objects';
+import { IMinMaxBoundary2D, IPoint, IPose, IShape } from './components';
 
 export const rotatePointAboutOrigin = ({ point, orientation }: {
     point: IPoint, orientation: number,

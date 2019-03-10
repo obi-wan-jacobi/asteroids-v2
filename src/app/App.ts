@@ -1,31 +1,25 @@
 import Engine from '../engine/Engine';
-import IAdaptedMouseEvent from '../engine/interfaces/IAdaptedMouseEvent';
 import IKeyboardAdaptor from '../engine/interfaces/IKeyboardAdaptor';
 import IMouseAdaptor from '../engine/interfaces/IMouseAdaptor';
 import IViewportAdaptor from '../engine/interfaces/IViewportAdaptor';
-import { isPointInsideShape } from './geometry';
-import { Pose, Shape } from './objects';
-import { Interactive } from './ui';
 
 let loop: NodeJS.Timeout;
 export default class App {
 
-    private __viewport: IViewportAdaptor;
-    private __mouse: IMouseAdaptor;
-    private __keyboard: IKeyboardAdaptor;
-    private __ui: Engine;
-    private __game: Engine;
+    public viewport: IViewportAdaptor;
+    public mouse: IMouseAdaptor;
+    public keyboard: IKeyboardAdaptor;
+    public game: Engine;
 
     private __isPaused: boolean;
 
-    constructor({ viewport, mouse, keyboard, ui, game }
-        : { viewport: IViewportAdaptor, mouse: IMouseAdaptor, keyboard: IKeyboardAdaptor, ui: Engine, game: Engine },
+    constructor({ viewport, mouse, keyboard, game }
+        : { viewport: IViewportAdaptor, mouse: IMouseAdaptor, keyboard: IKeyboardAdaptor, game: Engine },
     ) {
-        this.__viewport = viewport;
-        this.__mouse = mouse;
-        this.__keyboard = keyboard;
-        this.__ui = ui;
-        this.__game = game;
+        this.viewport = viewport;
+        this.mouse = mouse;
+        this.keyboard = keyboard;
+        this.game = game;
         this.__isPaused = false;
     }
 
@@ -34,24 +28,13 @@ export default class App {
     }
 
     public once(): void {
-        this.__viewport.refresh();
-        this.__mouse.once((mouseEvent: IAdaptedMouseEvent) => {
-            this.__ui.components.get(Interactive).forEach((entity) => {
-                if (!isPointInsideShape(mouseEvent, entity.copy(Shape), entity.copy(Pose))) {
-                    return;
-                }
-                const interactive = entity.copy(Interactive);
-                if (mouseEvent.name === 'click') {
-                    interactive.click(mouseEvent);
-                }
-            });
-        });
+        this.viewport.refresh();
+        this.mouse.once();
+        this.keyboard.once();
         if (!this.__isPaused) {
-            this.tick();
+            this.game.once();
         }
-        this.__game.draw(this.__viewport);
-        this.__ui.once();
-        this.__ui.draw(this.__viewport);
+        this.game.draw(this.viewport);
     }
 
     public start(): void {
@@ -71,7 +54,7 @@ export default class App {
     }
 
     public tick(): void {
-        this.__game.once();
+        this.game.once();
     }
 
 }

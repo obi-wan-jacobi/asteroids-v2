@@ -1,28 +1,12 @@
-import IComponent from '../engine/interfaces/IComponent';
 import IEntity from '../engine/interfaces/IEntity';
 import IViewportAdaptor from '../engine/interfaces/IViewportAdaptor';
-import { transformShape } from '../app/geometry';
-import { Entity, Pose, Shape } from '../app/objects';
-import { Label } from '../app/ui';
-
-function DrawOnlyIfEntityHas(Components: Array<new (data: any) => IComponent<any>>): any {
-    return function(target: HTML5CanvasViewportAdaptor, key: string, descriptor: PropertyDescriptor): void {
-        const method = descriptor.value;
-        const once = HTML5CanvasViewportAdaptor.prototype.once;
-        HTML5CanvasViewportAdaptor.prototype.once = function(entity: IEntity): void {
-            if (Components.filter((Component) => !entity.copy(Component)).length === 0) {
-                method.call(this, entity);
-            }
-            once.call(this, entity);
-        };
-    };
-}
+import { ILabel, IPoint, IPose, IRenderProfile, IShape } from '../app/components';
 
 function Atomic(target: HTML5CanvasViewportAdaptor, key: string, descriptor: PropertyDescriptor): void {
-    const method = descriptor.value;
+    const fn = descriptor.value;
     descriptor.value = function(entity: IEntity): void {
         this.ctx.save();
-        method.call(this, entity);
+        fn.call(this, entity);
         this.ctx.restore();
     };
 }
@@ -43,29 +27,32 @@ export class HTML5CanvasViewportAdaptor implements IViewportAdaptor {
         this.ctx.clearRect(0, 0, this.width, this.height);
     }
 
-    public once(entity: IEntity): void {
-        return;
-    }
-
-    @DrawOnlyIfEntityHas([Shape, Pose])
     @Atomic
-    public drawShape(entity: Entity): void {
-        const transform = transformShape({ shape: entity.copy(Shape), pose: entity.copy(Pose) });
-        this.ctx.strokeStyle = 'white';
+    public drawShape(shape: IShape): void {
+        const rendering = shape.rendering || { colour: 'white' };
+        this.ctx.strokeStyle = rendering.colour;
         this.ctx.beginPath();
-        transform.points.forEach((p) => {
+        shape.points.forEach((p: IPoint) => {
             this.ctx.lineTo(p.x, p.y);
         });
         this.ctx.closePath();
         this.ctx.stroke();
     }
 
-    @DrawOnlyIfEntityHas([Label, Pose])
     @Atomic
-    public drawLabel(entity: IEntity): void {
-        const pose = entity.copy(Pose);
-        const label = entity.copy(Label);
+    public drawLine({ points, rendering }: { points: IPoint[], rendering: IRenderProfile }): void {
+        this.ctx.strokeStyle = rendering.colour;
+        this.ctx.beginPath();
+        points.forEach((p: IPoint) => {
+            this.ctx.lineTo(p.x, p.y);
+        });
+        this.ctx.stroke();
+    }
+
+    @Atomic
+    public drawLabel({ pose, label }: { pose: IPose, label: ILabel }): void {
         this.ctx.fillStyle = 'white';
+        this.ctx.font = `${label.fontSize}px Arial`;
         this.ctx.fillText(label.text, pose.x + label.offset.x, pose.y + label.offset.y);
     }
 

@@ -8,8 +8,8 @@ export default abstract class Invocable<TPayload, TResult> implements IInvocable
 
     protected _method: (payload: TPayload) => TResult;
 
-    constructor({ method }: { method: (payload: TPayload) => TResult }) {
-        this._method = method;
+    constructor({ fn }: { fn: (payload: TPayload) => TResult }) {
+        this._method = fn;
     }
 
     public invoke(payload: TPayload): TResult {

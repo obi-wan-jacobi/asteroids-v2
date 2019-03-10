@@ -1,3 +1,4 @@
-export type Ctor<T, TArg> = new (arg: TArg) => T;
-export type Indexed<T extends {}> = T & { [key: string]: any };
+
+export type Ctor<TClass, TArg> = new (arg: TArg) => TClass;
+export type Indexed<T extends object> = T & { [key: string]: any };
 export type Optional<T> = T | undefined;

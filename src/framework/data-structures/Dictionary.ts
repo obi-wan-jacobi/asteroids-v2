@@ -1,6 +1,7 @@
+import IDictionary from '../interfaces/IDictionary';
 import { Indexed, Optional } from '../types';
 
-export default class Dictionary<T> {
+export default class Dictionary<T extends object> implements IDictionary<T> {
 
     private __data: Indexed<T>;
 

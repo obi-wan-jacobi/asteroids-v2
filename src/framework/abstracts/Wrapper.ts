@@ -1,9 +1,4 @@
-
-export interface IWrapper<T> {
-
-    unwrap(): T;
-
-}
+import IWrapper from '../interfaces/IWrapper';
 
 export default abstract class Wrapper<T extends {}> implements IWrapper<T> {
 

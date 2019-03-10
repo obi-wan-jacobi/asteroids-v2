@@ -1,29 +1,35 @@
-import ComponentIndex, { IComponentIndex } from './ComponentIndex';
-import Container from '../framework/data-structures/Container';
-import EntityIndex, { IEntityIndex } from './EntityIndex';
+import ComponentIndex from './ComponentIndex';
+import EntityFactory from './EntityFactory';
+import Factory from '../framework/data-structures/Factory';
+import IComponentIndex from './interfaces/IComponentIndex';
+import IEntity from './interfaces/IEntity';
+import { IEntityFactory } from './interfaces/IEntityFactory';
+import ISystem from './interfaces/ISystem';
 import IViewportAdaptor from './interfaces/IViewportAdaptor';
-import { Entity } from '../app/objects';
-import { System } from '../app/systems';
 
 export default class Engine {
 
     public components: IComponentIndex;
-    public entities: IEntityIndex;
-    public systems: Container<System>;
+    public entities: IEntityFactory;
+    public systems: Factory<ISystem>;
+    public drawSystems: Factory<ISystem>;
 
     constructor() {
         this.components = new ComponentIndex();
-        this.entities = new EntityIndex(this.components);
-        this.systems = new Container<System>();
+        this.entities = new EntityFactory(this.components);
+        this.systems = new Factory<ISystem>();
+        this.drawSystems = new Factory<ISystem>();
     }
 
     public once(): void {
-        this.systems.forEach((system: System) => {
-            this.entities.forEach((entity: Entity) => system.once(entity));
+        this.systems.forEach((system: ISystem) => {
+            this.entities.forEach((entity: IEntity) => system.once(entity));
         });
     }
 
     public draw(viewport: IViewportAdaptor): void {
-        this.entities.forEach((entity: Entity) => viewport.once(entity));
+        this.drawSystems.forEach((system: ISystem) => {
+            this.entities.forEach((entity: IEntity) => system.once(entity));
+        });
     }
 }

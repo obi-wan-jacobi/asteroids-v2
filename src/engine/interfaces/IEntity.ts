@@ -1,15 +1,19 @@
-import { IUnique } from '../../framework/data-structures/Container';
 import IComponent from './IComponent';
+import IUnique from '../../framework/interfaces/IUnique';
 import { Ctor } from '../../framework/types';
 
 export default interface IEntity extends IUnique {
 
-    add<T>(Component: Ctor<IComponent<T>, T>): (data: T) => void;
+    destroy(): void;
 
-    remove<T>(Component: Ctor<IComponent<T>, T>): void;
+    add<T>(ComponentCtor: Ctor<IComponent<T>, T>): (data: T) => void;
 
-    copy<T>(Component: Ctor<IComponent<T>, T>): T;
+    remove<T>(ComponentCtor: Ctor<IComponent<T>, T>): void;
 
-    mutate<T>(Component: Ctor<IComponent<T>, T>): (data: T) => void;
+    copy<T>(ComponentCtor: Ctor<IComponent<T>, T>): T;
+
+    mutate<T>(ComponentCtor: Ctor<IComponent<T>, T>): (data: T) => void;
+
+    forEach(fn: (component: IComponent<any>) => void): void;
 
 }

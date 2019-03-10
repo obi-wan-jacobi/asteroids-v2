@@ -1,12 +1,10 @@
 import Dictionary from './Dictionary';
+import IFactory from '../interfaces/IFactory';
+import IUnique from '../interfaces/IUnique';
 import Wrapper from '../abstracts/Wrapper';
 import { Ctor, Optional } from '../types';
 
-export interface IUnique {
-    id: string;
-}
-
-export default class Container<T extends IUnique> extends Wrapper<Dictionary<T>> {
+export default class Factory<T extends IUnique> extends Wrapper<Dictionary<T>> implements IFactory<T> {
 
     constructor() {
         super(new Dictionary<T>());
@@ -41,22 +39,22 @@ export default class Container<T extends IUnique> extends Wrapper<Dictionary<T>>
         this.unwrap().flush();
     }
 
-    public forEach(method: (value: T) => void): void {
-        this.unwrap().forEach(method);
+    public forEach(fn: (value: T) => void): void {
+        this.unwrap().forEach(fn);
     }
 
-    public map(method: (value: T) => any): any[] {
-        return this.unwrap().map(method);
+    public map(fn: (value: T) => any): any[] {
+        return this.unwrap().map(fn);
     }
 
-    public find(method: (value: T) => boolean): T {
-        return this.unwrap().find(method);
+    public find(fn: (value: T) => boolean): T {
+        return this.unwrap().find(fn);
     }
 
-    public first(method?: (value: T) => void): Optional<T> {
+    public first(fn?: (value: T) => void): Optional<T> {
         const first = this.unwrap().first();
-        if (method && first) {
-            method(first);
+        if (fn && first) {
+            fn(first);
         }
         return first;
     }
