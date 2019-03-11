@@ -51,3 +51,6 @@ export interface IRenderProfile {
     colour: string;
 
 }
+
+export interface IRigidBody {}
+export class RigidBody extends Component<IRigidBody> {}

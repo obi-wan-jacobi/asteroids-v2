@@ -1,5 +1,5 @@
 import IDictionary from '../interfaces/IDictionary';
-import { Indexed, Optional } from '../types';
+import { Indexed } from '../types';
 
 export default class Dictionary<T extends object> implements IDictionary<T> {
 
@@ -31,26 +31,10 @@ export default class Dictionary<T extends object> implements IDictionary<T> {
 
     public forEach(fn: (value: T) => void): void {
         Object.keys(this.__data).forEach((key) => {
-            fn(this.__data[key]);
-        });
-    }
-
-    public map(fn: (value: T) => any): any[] {
-        return Object.keys(this.__data).map((key) => {
-            return fn(this.__data[key]);
-        });
-    }
-
-    public find(fn: (value: T) => boolean): T {
-        return this.map((value: T): T => value).find(fn);
-    }
-
-    public first(): Optional<T> {
-        for (const key in this.__data) {
-            if (this.__data.hasOwnProperty(key)) {
-                return this.__data[key];
+            if (this.__data[key]) {
+                fn(this.__data[key]);
             }
-        }
+        });
     }
 
 }

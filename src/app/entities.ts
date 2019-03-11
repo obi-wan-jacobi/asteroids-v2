@@ -1,5 +1,5 @@
 import { Entity } from '../engine/Entity';
-import { Ephemeral, Flair, IPose, Pose, Shape, Steering, Thrust, Velocity } from './components';
+import { Ephemeral, Flair, IPoint, IPose, Pose, RigidBody, Shape, Steering, Thrust, Velocity } from './components';
 
 export class Ship extends Entity {
 
@@ -68,8 +68,8 @@ export class Missile extends Entity {
     constructor( { pose }: { pose: IPose }) {
         super(arguments[0]);
         this.add(Pose)({
-            x: pose.x + 20 * Math.cos(pose.a),
-            y: pose.y + 20 * Math.sin(pose.a),
+            x: pose.x + 30 * Math.cos(pose.a),
+            y: pose.y + 30 * Math.sin(pose.a),
             a: pose.a,
         });
         this.add(Velocity)({
@@ -88,8 +88,50 @@ export class Missile extends Entity {
             length: 40,
             width: 2,
         });
+        this.add(RigidBody)({});
+    }
+
+    public destroy(): void {
+        super.destroy();
+        this._factory.create(Explosion, { pose: this.copy(Pose), radius: 40 });
     }
 
 }
 
-export class Asteroid extends Entity {}
+export class Explosion extends Entity {
+
+    constructor({ pose, radius }: { pose: IPose, radius: number }) {
+        super(arguments[0]);
+        this.add(Pose)(pose);
+        const points: IPoint[] = [];
+        [1, 2, 3, 4, 5, 6].forEach((vertex) => {
+            points.push({
+                x: radius * Math.cos(vertex * 2 * Math.PI / 6),
+                y: radius * Math.sin(vertex * 2 * Math.PI / 6),
+            });
+        });
+        this.add(Shape)( { points });
+        this.add(Velocity)({ x: 0, y: 0, w: Math.PI / 32 });
+        this.add(Ephemeral)({ remaining: 30 });
+    }
+
+}
+
+export class Asteroid extends Entity {
+
+    constructor({ pose, radius }: { pose: IPose, radius: number }) {
+        super(arguments[0]);
+        this.add(Pose)(pose);
+        const points: IPoint[] = [];
+        [1, 2, 3, 4, 5, 6].forEach((vertex) => {
+            points.push({
+                x: radius * Math.cos(vertex * 2 * Math.PI / 6),
+                y: radius * Math.sin(vertex * 2 * Math.PI / 6),
+            });
+        });
+        this.add(Shape)( { points });
+        this.add(Velocity)({ x: 0, y: 0, w: 0 });
+        this.add(RigidBody)({});
+    }
+
+}

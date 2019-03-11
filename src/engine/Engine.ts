@@ -4,15 +4,15 @@ import Factory from '../framework/data-structures/Factory';
 import IComponentIndex from './interfaces/IComponentIndex';
 import IEntity from './interfaces/IEntity';
 import { IEntityFactory } from './interfaces/IEntityFactory';
+import IFactory from '../framework/interfaces/IFactory';
 import ISystem from './interfaces/ISystem';
-import IViewportAdaptor from './interfaces/IViewportAdaptor';
 
 export default class Engine {
 
     public components: IComponentIndex;
     public entities: IEntityFactory;
-    public systems: Factory<ISystem>;
-    public drawSystems: Factory<ISystem>;
+    public systems: IFactory<ISystem>;
+    public drawSystems: IFactory<ISystem>;
 
     constructor() {
         this.components = new ComponentIndex();
@@ -27,7 +27,7 @@ export default class Engine {
         });
     }
 
-    public draw(viewport: IViewportAdaptor): void {
+    public draw(): void {
         this.drawSystems.forEach((system: ISystem) => {
             this.entities.forEach((entity: IEntity) => system.once(entity));
         });

@@ -17,10 +17,4 @@ export default interface IFactory<T extends IUnique> extends IWrapper<IDictionar
 
     forEach(fn: (value: T) => void): void;
 
-    map(fn: (value: T) => any): any[];
-
-    find(fn: (value: T) => boolean): T;
-
-    first(fn?: (value: T) => void): Optional<T>;
-
 }

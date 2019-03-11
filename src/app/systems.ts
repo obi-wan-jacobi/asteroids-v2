@@ -1,8 +1,44 @@
 import IEntity from '../engine/interfaces/IEntity';
+import { IEntityFactory } from '../engine/interfaces/IEntityFactory';
 import IViewportAdaptor from '../engine/interfaces/IViewportAdaptor';
 import { OnlyIfEntityHas, System } from '../engine/abstracts/System';
-import { Ephemeral, Flair, Label, Pose, Shape, Steering, Thrust, Velocity } from './components';
-import { transformShape } from './geometry';
+import { Ephemeral, Flair, Label, Pose, RigidBody, Shape, Steering, Thrust, Velocity } from './components';
+import { isPointInsideShape, transformShape } from './geometry';
+
+export class CollisionSystem extends System {
+
+    private __entities: IEntityFactory;
+
+    constructor(entities: IEntityFactory) {
+        super();
+        this.__entities = entities;
+    }
+
+    @OnlyIfEntityHas(RigidBody)
+    public once(entity: IEntity): void {
+        const shape = entity.copy(Shape);
+        const pose = entity.copy(Pose);
+        const transform = transformShape({ shape, pose });
+        this.__entities.forEach((target) => {
+            if (entity === target) {
+                return;
+            }
+            const targetShape = target.copy(Shape);
+            const targetPose = target.copy(Pose);
+            if (!targetShape || !targetPose) {
+                return;
+            }
+            const targetTransform = transformShape({ shape: targetShape, pose: targetPose });
+            transform.points.forEach((point) => {
+                if (isPointInsideShape(point, targetTransform)) {
+                    entity.destroy();
+                    target.destroy();
+                }
+            });
+        });
+    }
+
+}
 
 export class EphemeralSystem extends System {
 

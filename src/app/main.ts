@@ -6,10 +6,11 @@ import HTML5CanvasMouseAdaptor from '../html5-canvas/HTML5CanvasMouseAdaptor';
 import { HTML5CanvasViewportAdaptor } from '../html5-canvas/HTML5CanvasViewportAdaptor';
 import KeyboardHandler from '../engine/KeyboardHandler';
 import { Label, Pose } from './components';
-import { Ship } from './entities';
+import { Asteroid, Ship } from './entities';
 import $ from 'jquery';
 import {
-    BoundarySytem, EphemeralSystem, FlairSystem, LabelSystem, ShapeSystem, SteeringSystem, ThrustSystem, VelocitySystem,
+    BoundarySytem, CollisionSystem, EphemeralSystem, FlairSystem, LabelSystem,
+    ShapeSystem, SteeringSystem, ThrustSystem, VelocitySystem,
 } from './systems';
 
 const canvas = $('#app-target').get(0) as HTMLCanvasElement;
@@ -30,6 +31,8 @@ app.game.systems.add(SteeringSystem);
 app.game.systems.add(ThrustSystem);
 app.game.systems.add(EphemeralSystem);
 
+app.game.systems.add(CollisionSystem, app.game.entities);
+
 app.game.drawSystems.add(LabelSystem, { viewport: app.viewport });
 app.game.drawSystems.add(ShapeSystem, { viewport: app.viewport });
 app.game.drawSystems.add(FlairSystem, { viewport: app.viewport });
@@ -48,8 +51,8 @@ const setup = (): void => {
         },
     };
     app.keyboard.handler(startKeyboardHandler);
+    startKeyboardHandler.keyups[' ']({ name: 'skip', key: ' ' });
 };
-setup();
 
 const begin = (): void => {
     const ship = app.game.entities.create(Ship);
@@ -64,6 +67,9 @@ const begin = (): void => {
         ArrowUp: () => ship.idle(),
         ArrowLeft: () => ship.stopTurningLeft(),
         ArrowRight: () => ship.stopTurningRight(),
+        r: () => app.game.entities.create(Asteroid, { pose: { x: 200, y: 200, a: 0 }, radius: 100 }),
     };
     app.keyboard.handler(shipKeyboardHandler);
 };
+
+setup();

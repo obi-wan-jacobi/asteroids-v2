@@ -34,7 +34,7 @@ export default class App {
         if (!this.__isPaused) {
             this.game.once();
         }
-        this.game.draw(this.viewport);
+        this.game.draw();
     }
 
     public start(): void {

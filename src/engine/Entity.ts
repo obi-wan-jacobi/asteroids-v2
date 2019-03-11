@@ -19,7 +19,7 @@ export class Entity extends Unique implements IEntity {
     }
 
     public destroy(): void {
-        this._factory.destroy(this);
+        return this._factory.destroy(this);
     }
 
     public add<T>(ComponentCtor: Ctor<IComponent<T>, T>): (data: T) => void {

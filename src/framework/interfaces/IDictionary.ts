@@ -1,4 +1,3 @@
-import { Optional } from '../types';
 
 export default interface IDictionary<T> {
 
@@ -13,11 +12,5 @@ export default interface IDictionary<T> {
     flush(): void;
 
     forEach(fn: (value: T) => void): void;
-
-    map(fn: (value: T) => any): any[];
-
-    find(fn: (value: T) => boolean): T;
-
-    first(): Optional<T>;
 
 }

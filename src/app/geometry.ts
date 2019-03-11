@@ -55,15 +55,13 @@ export const isPointInsideMinMaxBounds = (point: IPoint, bounds: IMinMaxBoundary
     return point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY;
 };
 
-export const isPointInsideShape = (
-    point: IPoint, shape: IShape, pose: IPose,
-): boolean => {
-    const { minX, maxX, minY, maxY } = getMinMaxShapeBounds(transformShape({ shape, pose }));
+export const isPointInsideShape = (point: IPoint, shape: IShape): boolean => {
+    const { minX, maxX, minY, maxY } = getMinMaxShapeBounds(shape);
     if (!isPointInsideMinMaxBounds(point, { minX, maxX, minY, maxY })) {
         return false;
     }
     let numberOfIntersections = 0;
-    const shapeSegments = fromShapeToLineSegments(shape, pose);
+    const shapeSegments = fromShapeToLineSegments(shape);
     const raySegment = { head: point, tail: { x: minX, y: minY } };
     for (const shapeSegment of shapeSegments) {
         const intersection = getPointOfIntersectionBetweenLinesFromSegments(raySegment, shapeSegment);
@@ -98,10 +96,7 @@ export const getIntersectionBetweenStandardForms = (
     };
 };
 
-export const fromShapeToLineSegments = (
-    shape: IShape, pose: IPose,
-): Array<{ head: IPoint, tail: IPoint }> => {
-    shape = transformShape({ shape, pose });
+export const fromShapeToLineSegments = (shape: IShape): Array<{ head: IPoint, tail: IPoint }> => {
     const points = shape.points;
     points.push(points[0]);
     const segments = [];
@@ -127,12 +122,11 @@ export const fromLineSegmentToStandardForm = (segment: { head: IPoint, tail: IPo
 
 export const isShapeIntersectedByLine = (
     shape: IShape,
-    pose: IPose,
     line: { points: IPoint[] },
 ): boolean => {
     const segments = fromLineToLineSegments(line);
     for (const segment of segments) {
-        if (isShapeIntersectedByLineSegment(shape, pose, segment)) {
+        if (isShapeIntersectedByLineSegment(shape, segment)) {
             return true;
         }
     }
@@ -141,10 +135,9 @@ export const isShapeIntersectedByLine = (
 
 export const isShapeIntersectedByLineSegment = (
     shape: IShape,
-    pose: IPose,
     segment: { head: IPoint, tail: IPoint },
 ): boolean => {
-    const shapeSegments = fromShapeToLineSegments(shape, pose);
+    const shapeSegments = fromShapeToLineSegments(shape);
     for (const shapeSegment of shapeSegments) {
         if (isLineSegmentIntersectedByLineSegment(shapeSegment, segment)) {
             return true;
