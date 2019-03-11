@@ -25,15 +25,14 @@ export class ThrustSystem extends System {
     public once(entity: IEntity): void {
         const pose = entity.copy(Pose);
         const thrust = entity.copy(Thrust);
-        let velocity = entity.copy(Velocity);
+        const velocity = entity.copy(Velocity);
         if (thrust.state === 'ACCELERATE') {
             entity.mutate(Thrust)(thrust);
-            velocity = {
+            entity.mutate(Velocity)({
                 x: velocity.x + thrust.increment * Math.cos(pose.a),
                 y: velocity.y + thrust.increment * Math.sin(pose.a),
                 w: velocity.w,
-            };
-            return entity.mutate(Velocity)(velocity);
+            });
         }
     }
 

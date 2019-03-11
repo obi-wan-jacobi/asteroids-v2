@@ -1,5 +1,4 @@
 import { Entity } from '../engine/Entity';
-import { IEntityFactory } from '../engine/interfaces/IEntityFactory';
 import { Ephemeral, Flair, IPose, Pose, Shape, Steering, Thrust, Velocity } from './components';
 
 export class Ship extends Entity {
@@ -29,10 +28,6 @@ export class Ship extends Entity {
         });
     }
 
-    public turn(direction: string): void {
-        this.mutate(Steering)({ direction });
-    }
-
     public idle(): void {
         const thrust = this.copy(Thrust);
         thrust.state = 'IDLE';
@@ -40,8 +35,30 @@ export class Ship extends Entity {
         this.remove(Flair);
     }
 
-    public spawnMissile(factory: IEntityFactory): void {
-        factory.create(Missile, { pose: this.copy(Pose) });
+    public turnLeft(): void {
+        this.mutate(Steering)({ direction: 'LEFT' });
+    }
+
+    public stopTurningLeft(): void {
+        const steering = this.copy(Steering);
+        if (steering.direction === 'LEFT') {
+            this.mutate(Steering)({ direction: 'NONE' });
+        }
+    }
+
+    public turnRight(): void {
+        this.mutate(Steering)({ direction: 'RIGHT' });
+    }
+
+    public stopTurningRight(): void {
+        const steering = this.copy(Steering);
+        if (steering.direction === 'RIGHT') {
+            this.mutate(Steering)({ direction: 'NONE' });
+        }
+    }
+
+    public shoot(): void {
+        this._factory.create(Missile, { pose: this.copy(Pose) });
     }
 
 }

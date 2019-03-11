@@ -7,18 +7,19 @@ import { Ctor } from '../framework/types';
 
 export class Entity extends Unique implements IEntity {
 
+    protected _factory: IEntityFactory;
+
     private __data: { [key: string]: IComponent<any> } = {};
-    private __factory: IEntityFactory;
     private __index: IComponentIndex;
 
     constructor({ index, factory }: { index: IComponentIndex, factory: IEntityFactory }) {
         super();
         this.__index = index;
-        this.__factory = factory;
+        this._factory = factory;
     }
 
     public destroy(): void {
-        this.__factory.destroy(this);
+        this._factory.destroy(this);
     }
 
     public add<T>(ComponentCtor: Ctor<IComponent<T>, T>): (data: T) => void {

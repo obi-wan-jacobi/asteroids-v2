@@ -7,6 +7,7 @@
             "singleline": "never"
         }],
         "one-line": false,
+        "object-literal-key-quotes": [true, "as-needed"],
         "object-literal-sort-keys": false,
         "no-empty-interface": false,
         "no-var-requires": false,
