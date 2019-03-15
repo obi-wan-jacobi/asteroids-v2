@@ -52,31 +52,29 @@ export const getMinMaxShapeBounds = (shape: IShape): IMinMaxBoundary2D => {
 
 export const isPointInsideMinMaxBounds = (point: IPoint, bounds: IMinMaxBoundary2D): boolean => {
     const { minX, maxX, minY, maxY } = bounds;
-    return point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY;
+    return point.x > minX && point.x < maxX && point.y > minY && point.y < maxY;
 };
 
-export const isPointInsideShape = (point: IPoint, shape: IShape): boolean => {
+export function isPointInsideShape(point: IPoint, shape: IShape): boolean {
+    shape = JSON.parse(JSON.stringify(shape));
     const { minX, maxX, minY, maxY } = getMinMaxShapeBounds(shape);
     if (!isPointInsideMinMaxBounds(point, { minX, maxX, minY, maxY })) {
         return false;
     }
-    let numberOfIntersections = 0;
-    const shapeSegments = fromShapeToLineSegments(shape);
-    const raySegment = { head: point, tail: { x: minX, y: minY } };
-    for (const shapeSegment of shapeSegments) {
-        const intersection = getPointOfIntersectionBetweenLinesFromSegments(raySegment, shapeSegment);
-        if (isPointInsideMinMaxBounds(intersection, { minX, maxX, minY, maxY })) {
-            if (Math.round(intersection.x) === Math.round(minX) && Math.round(intersection.y) === Math.round(minY)) {
-                return true;
-            } else {
-                numberOfIntersections++;
-            }
+    // http://jsfromhell.com/math/is-point-in-poly
+    let isInside = false;
+    const points = JSON.parse(JSON.stringify(shape.points));
+    points.push(points[0]);
+    for (let i = 0, L = points.length; i < L - 1; i++) {
+        /* tslint:disable:max-line-length */
+        /* tsling:disable:no-unused-expression */
+        if (((points[i].y <= point.y && point.y < points[i + 1].y) || (points[i + 1].y <= point.y && point.y < points[i].y))
+        && (point.x < (points[i + 1].x - points[i].x) * (point.y - points[i].y) / (points[i + 1].y - points[i].y) + points[i].x)) {
+            isInside = !isInside;
         }
     }
-    return ((numberOfIntersections % 2) === 1)
-        ? true
-        : false;
-};
+    return isInside;
+}
 
 export const fromPointsToStandardForm = ({ p1, p2 }: { p1: IPoint, p2: IPoint }): { m: number, b: number } => {
     const m = (p2.y - p1.y) / (p2.x - p1.x);
@@ -97,6 +95,7 @@ export const getIntersectionBetweenStandardForms = (
 };
 
 export const fromShapeToLineSegments = (shape: IShape): Array<{ head: IPoint, tail: IPoint }> => {
+    shape = JSON.parse(JSON.stringify(shape));
     const points = shape.points;
     points.push(points[0]);
     const segments = [];
@@ -178,6 +177,22 @@ export const getPointOfIntersectionBetweenLinesFromSegments = (
 
 export const getMinMaxLineSegmentBounds = (segment: { head: IPoint, tail: IPoint }): IMinMaxBoundary2D => {
     return getMinMaxShapeBounds({ points: [segment.tail, segment.head] });
+};
+
+export const getEuclideanDistanceBetweenPoints = (p1: IPoint, p2: IPoint): number => {
+    return Math.sqrt(Math.pow((p2.x - p1.x), 2) + Math.pow(p2.y - p1.y, 2));
+};
+
+export const fromShapeToGeoJSONCoordinates = (shape: IShape): number[][][] => {
+    return [shape.points.map((vertex) => [vertex.x, vertex.y ]).concat([[shape.points[0].x, shape.points[0].y]])];
+};
+
+export const fromGeoJSONCoordinatesToShapes = (geoJSON: number[][][][]): IShape[] => {
+    const shapes = geoJSON.map((polygon: number[][][]) => {
+        return { points: polygon[0].map((vertex: number[]) => ({ x: vertex[0], y: vertex[1] })) };
+    });
+    shapes.forEach((shape) => shape.points.pop());
+    return shapes;
 };
 
 const __settleFloatingPoint = (value: number): number => {

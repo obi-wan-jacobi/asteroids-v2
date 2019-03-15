@@ -3,6 +3,7 @@ import { IEntityFactory } from '../engine/interfaces/IEntityFactory';
 import IViewportAdaptor from '../engine/interfaces/IViewportAdaptor';
 import { OnlyIfEntityHas, System } from '../engine/abstracts/System';
 import { Ephemeral, Flair, Label, Pose, RigidBody, Shape, Steering, Thrust, Velocity } from './components';
+import { Asteroid, Explosion, Missile } from './entities';
 import { isPointInsideShape, transformShape } from './geometry';
 
 export class CollisionSystem extends System {
@@ -16,25 +17,45 @@ export class CollisionSystem extends System {
 
     @OnlyIfEntityHas(RigidBody)
     public once(entity: IEntity): void {
-        const shape = entity.copy(Shape);
-        const pose = entity.copy(Pose);
-        const transform = transformShape({ shape, pose });
+        if (entity.constructor !== Missile) {
+            return;
+        }
         this.__entities.forEach((target) => {
-            if (entity === target) {
+            if (target.constructor !== Asteroid) {
                 return;
             }
+            const pose = entity.copy(Pose);
             const targetShape = target.copy(Shape);
             const targetPose = target.copy(Pose);
-            if (!targetShape || !targetPose) {
+            const targetTransform = transformShape({ shape: targetShape, pose: targetPose });
+            if (isPointInsideShape(pose, targetTransform)) {
+                entity.destroy();
+            }
+        });
+    }
+
+}
+
+export class ExplosionSystem extends System {
+
+    private __entities: IEntityFactory;
+
+    constructor(entities: IEntityFactory) {
+        super();
+        this.__entities = entities;
+    }
+
+    public once(entity: IEntity): void {
+        if (entity.constructor !== Explosion) {
+            return;
+        }
+        this.__entities.forEach((target) => {
+            if (target.constructor !== Asteroid) {
                 return;
             }
-            const targetTransform = transformShape({ shape: targetShape, pose: targetPose });
-            transform.points.forEach((point) => {
-                if (isPointInsideShape(point, targetTransform)) {
-                    entity.destroy();
-                    target.destroy();
-                }
-            });
+            const pose = entity.copy(Pose);
+            const shape = entity.copy(Shape);
+            (target as Asteroid).diff({ pose, shape });
         });
     }
 
