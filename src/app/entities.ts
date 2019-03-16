@@ -114,6 +114,26 @@ export class MissileExplosion extends Entity {
         this.add(Ephemeral)({ remaining: 1 });
     }
 
+    public destroy(): void {
+        super.destroy();
+        this.$.entities.create(MissileExplosionVisual, { pose: this.copy(Pose), radius: 50 });
+    }
+
+}
+
+export class MissileExplosionVisual extends Entity {
+
+    constructor({ pose, radius }: { pose: IPose, radius: number }) {
+        super(arguments[0]);
+        this.add(Pose)(pose);
+        this.add(Shape)({ points: [1, 2, 3, 4, 5, 6].map((vertex) => ({
+            x: radius * Math.cos(vertex * 2 * Math.PI / 6),
+            y: radius * Math.sin(vertex * 2 * Math.PI / 6),
+        }))});
+        this.add(Velocity)({ x: 0, y: 0, w: Math.PI / 64 });
+        this.add(Ephemeral)({ remaining: 30 });
+    }
+
 }
 
 export class Asteroid extends Entity {

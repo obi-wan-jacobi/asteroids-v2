@@ -8,7 +8,7 @@ import {
     fromGeoJSONCoordinatesToShapes, fromShapeToGeoJSONCoordinates, getMinMaxShapeBounds,
     isPointInsideShape, transformShape,
 } from './geometry';
-const martinez = require('martinez-polygon-clipping');
+const polybool = require('polybooljs');
 
 export class MissileSystem extends System {
 
@@ -59,7 +59,7 @@ const explodeAsteroid = (explosionShape: IShape, asteroid: Asteroid): void => {
         transformShape(asteroid.copy(Shape), asteroid.copy(Pose)),
     );
 
-    const remainders = fromGeoJSONCoordinatesToShapes(martinez.diff(geoJSONCoordinates2, geoJSONCoordinates1));
+    const remainders = fromGeoJSONCoordinatesToShapes(polybool.difference(geoJSONCoordinates2, geoJSONCoordinates1));
     if (remainders.length === 0) {
         asteroid.destroy();
         return;

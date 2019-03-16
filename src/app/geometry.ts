@@ -183,24 +183,17 @@ export const getEuclideanDistanceBetweenPoints = (p1: IPoint, p2: IPoint): numbe
     return Math.sqrt(Math.pow((p2.x - p1.x), 2) + Math.pow(p2.y - p1.y, 2));
 };
 
-export const fromShapeToGeoJSONCoordinates = (shape: IShape): number[][][] => {
-    return [shape.points.map((vertex) => [vertex.x, vertex.y ]).concat([[shape.points[0].x, shape.points[0].y]])];
+export const fromShapeToGeoJSONCoordinates = (shape: IShape): { regions: number[][][], inverted: boolean } => {
+    return {
+        regions: [shape.points.map((vertex) => [vertex.x, vertex.y ]).concat([[shape.points[0].x, shape.points[0].y]])],
+        inverted: false,
+    };
 };
 
-export const fromGeoJSONCoordinatesToShapes = (geoJSON: number[][][][]): IShape[] => {
-    const shapes = geoJSON.map((polygon: number[][][]) => {
-        return { points: polygon[0].map((vertex: number[]) => ({ x: vertex[0], y: vertex[1] })) };
+export const fromGeoJSONCoordinatesToShapes = (geoJSON: { regions: number[][][], inverted: boolean }): IShape[] => {
+    return geoJSON.regions.map((polygon: number[][]) => {
+        return { points: polygon.map((vertex: number[]) => ({ x: vertex[0], y: vertex[1] })) };
     });
-    shapes.forEach((shape) => {
-        const last = shape.points[shape.points.length - 1];
-        const secondLast = shape.points[shape.points.length - 2];
-        if (last.x === secondLast.x && last.y === secondLast.y) {
-            shape.points.pop();
-            console.log('pop!');
-        }
-
-    });
-    return shapes;
 };
 
 const __settleFloatingPoint = (value: number): number => {
