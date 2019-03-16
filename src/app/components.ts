@@ -41,6 +41,8 @@ export class Steering extends Component<{ direction: string }> {}
 
 export class Ephemeral extends Component<{ remaining: number }> {}
 
+export class MissileLauncher extends Component<{ state: string, cooldown: number }> {}
+
 export interface ILabel { text: string; fontSize: number; offset: { x: number, y: number }; }
 export class Label extends Component<ILabel> {}
 

@@ -1,6 +1,6 @@
 import { Entity } from '../engine/Entity';
 import {
-    Ephemeral, Flair, IPose, Pose, Shape, Steering, Thrust, Velocity,
+    Ephemeral, Flair, IPose, MissileLauncher, Pose, Shape, Steering, Thrust, Velocity,
 } from './components';
 
 export class Ship extends Entity {
@@ -17,6 +17,7 @@ export class Ship extends Entity {
         this.add(Velocity)({ x: 0, y: 0, w: 0 });
         this.add(Steering)({ direction: 'NONE' });
         this.add(Thrust)({ state: 'IDLE', topSpeed: 10, increment: 0.02 });
+        this.add(MissileLauncher)({ state: 'IDLE', cooldown: 0 });
     }
 
     public accelerate(): void {
@@ -60,7 +61,9 @@ export class Ship extends Entity {
     }
 
     public shoot(): void {
-        this.$.entities.create(Missile, { pose: this.copy(Pose) });
+        const missileLauncher = this.copy(MissileLauncher);
+        missileLauncher.state = 'FIRE';
+        this.mutate(MissileLauncher)(missileLauncher);
     }
 
 }
@@ -104,11 +107,10 @@ export class MissileExplosion extends Entity {
     constructor({ pose, radius }: { pose: IPose, radius: number }) {
         super(arguments[0]);
         this.add(Pose)(pose);
-        this.add(Shape)({ points: [1, 2, 3, 4, 5, 6].map((vertex) => ({
-            x: radius * Math.cos(vertex * 2 * Math.PI / 6),
-            y: radius * Math.sin(vertex * 2 * Math.PI / 6),
+        this.add(Shape)({ points: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((vertex) => ({
+            x: radius * Math.cos(vertex * 2 * Math.PI / 10),
+            y: radius * Math.sin(vertex * 2 * Math.PI / 10),
         }))});
-        this.add(Velocity)({ x: 0, y: 0, w: Math.PI / 32 });
         this.add(Ephemeral)({ remaining: 1 });
     }
 
@@ -123,7 +125,7 @@ export class Asteroid extends Entity {
             x: radius * Math.cos(vertex * 2 * Math.PI / 6),
             y: radius * Math.sin(vertex * 2 * Math.PI / 6),
         }))});
-        this.add(Velocity)({ x: 0, y: 0, w: 0 });
+        this.add(Velocity)({ x: 0, y: 0, w: Math.PI / 1024 });
     }
 
 }

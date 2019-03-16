@@ -191,7 +191,15 @@ export const fromGeoJSONCoordinatesToShapes = (geoJSON: number[][][][]): IShape[
     const shapes = geoJSON.map((polygon: number[][][]) => {
         return { points: polygon[0].map((vertex: number[]) => ({ x: vertex[0], y: vertex[1] })) };
     });
-    shapes.forEach((shape) => shape.points.pop());
+    shapes.forEach((shape) => {
+        const last = shape.points[shape.points.length - 1];
+        const secondLast = shape.points[shape.points.length - 2];
+        if (last.x === secondLast.x && last.y === secondLast.y) {
+            shape.points.pop();
+            console.log('pop!');
+        }
+
+    });
     return shapes;
 };
 

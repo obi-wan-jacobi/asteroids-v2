@@ -1,7 +1,7 @@
 import IEntity from '../engine/interfaces/IEntity';
 import { System } from '../engine/abstracts/System';
 import {
-    Ephemeral, Flair, IShape, Label, Pose, Shape, Steering, Thrust, Velocity,
+    Ephemeral, Flair, IShape, Label, MissileLauncher, Pose, Shape, Steering, Thrust, Velocity,
 } from './components';
 import { Asteroid, Missile, MissileExplosion } from './entities';
 import {
@@ -31,14 +31,20 @@ export class MissileSystem extends System {
 export class MissileExplosionSystem extends System {
 
     public once(): void {
-        this.$.entities.forEvery(Asteroid)((asteroid: Asteroid) => {
-            this.$.entities.forEvery(MissileExplosion)((explosion: MissileExplosion) => {
+        this.$.entities.forEvery(MissileExplosion)((explosion: MissileExplosion) => {
+            this.$.entities.forEvery(Asteroid)((asteroid: Asteroid) => {
                 const explosionShape = transformShape(explosion.copy(Shape), explosion.copy(Pose));
                 const asteroidShape = transformShape(asteroid.copy(Shape), asteroid.copy(Pose));
                 for (const point of explosionShape.points) {
                     if (isPointInsideShape(point, asteroidShape)) {
                         explodeAsteroid(explosionShape, asteroid);
-                        break;
+                        return;
+                    }
+                }
+                for (const point of asteroidShape.points) {
+                    if (isPointInsideShape(point, explosionShape)) {
+                        explodeAsteroid(explosionShape, asteroid);
+                        return;
                     }
                 }
             });
@@ -52,28 +58,35 @@ const explodeAsteroid = (explosionShape: IShape, asteroid: Asteroid): void => {
     const geoJSONCoordinates2 = fromShapeToGeoJSONCoordinates(
         transformShape(asteroid.copy(Shape), asteroid.copy(Pose)),
     );
-    asteroid.destroy();
+
     const remainders = fromGeoJSONCoordinatesToShapes(martinez.diff(geoJSONCoordinates2, geoJSONCoordinates1));
     if (remainders.length === 0) {
+        asteroid.destroy();
         return;
     }
+    transformAsteroidFragment(asteroid, remainders.shift()!);
     remainders.forEach((remainder) => {
-        const { x, y } = remainder.points.reduce((prev, cur) => ({ x: prev.x + cur.x, y: prev.y + cur.y }));
-        const fragmentPose = {
-            x: x / remainder.points.length,
-            y: y / remainder.points.length,
-            a: 0,
-        };
-        const fragment = asteroid.$.entities.create(Asteroid, { pose: fragmentPose, radius: 0 });
-        fragment.mutate(Shape)({
-            points: remainder.points.map((point) => ({ x: point.x - fragmentPose.x, y: point.y - fragmentPose.y })),
-        });
-        const { minX, maxX, minY, maxY } = getMinMaxShapeBounds(fragment.copy(Shape));
-        const epsilon = 30;
-        if (maxX - minX < epsilon && maxY - minY < epsilon) {
-            fragment.destroy();
-        }
+        const fragment = asteroid.$.entities.create(Asteroid, { pose: { x: 0, y: 0, a: 0 }, radius: 0 });
+        transformAsteroidFragment(fragment, remainder);
     });
+};
+
+const transformAsteroidFragment = (asteroid: Asteroid, remainder: IShape): void => {
+    const { x, y } = remainder.points.reduce((prev, cur) => ({ x: prev.x + cur.x, y: prev.y + cur.y }));
+    const fragmentPose = {
+        x: x / remainder.points.length,
+        y: y / remainder.points.length,
+        a: 0,
+    };
+    asteroid.mutate(Shape)({
+        points: remainder.points.map((point) => ({ x: point.x - fragmentPose.x, y: point.y - fragmentPose.y })),
+    });
+    asteroid.mutate(Pose)(fragmentPose);
+    const { minX, maxX, minY, maxY } = getMinMaxShapeBounds(asteroid.copy(Shape));
+    const epsilon = 30;
+    if (maxX - minX < epsilon && maxY - minY < epsilon) {
+        asteroid.destroy();
+    }
 };
 
 export class EphemeralSystem extends System {
@@ -210,6 +223,26 @@ export class FlairSystem extends System {
                 points: transform.points,
                 rendering: { colour: 'red' },
             });
+        });
+    }
+
+}
+
+export class MissileLauncherSystem extends System {
+
+    public once(): void {
+        this.$.entities.forEachWith(MissileLauncher)((entity: IEntity) => {
+            const launcher = entity.copy(MissileLauncher);
+            if (launcher.state === 'FIRE' && launcher.cooldown === 0) {
+                this.$.entities.create(Missile, { pose: entity.copy(Pose) });
+                launcher.state = 'IDLE';
+                launcher.cooldown = 30;
+                entity.mutate(MissileLauncher)(launcher);
+                return;
+            }
+            launcher.cooldown = launcher.cooldown > 0 ? launcher.cooldown - 1 : 0;
+            entity.mutate(MissileLauncher)(launcher);
+            return;
         });
     }
 

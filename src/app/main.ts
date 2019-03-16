@@ -10,7 +10,8 @@ import { Asteroid, Ship } from './entities';
 import $ from 'jquery';
 import {
     EphemeralSystem, FlairSystem, LabelSystem,
-    MissileExplosionSystem, MissileSystem, MovementSystem, ShapeSystem, SteeringSystem, ThrustSystem,
+    MissileExplosionSystem, MissileLauncherSystem, MissileSystem, MovementSystem,
+    ShapeSystem, SteeringSystem, ThrustSystem,
 } from './systems';
 
 const canvas = $('#app-target').get(0) as HTMLCanvasElement;
@@ -36,6 +37,7 @@ app.game.systems.add(MissileExplosionSystem, app.game);
 app.game.systems.add(LabelSystem, app.game);
 app.game.systems.add(ShapeSystem, app.game);
 app.game.systems.add(FlairSystem, app.game);
+app.game.systems.add(MissileLauncherSystem, app.game);
 
 app.start();
 
@@ -67,7 +69,9 @@ const begin = (): void => {
         ArrowUp: () => ship.idle(),
         ArrowLeft: () => ship.stopTurningLeft(),
         ArrowRight: () => ship.stopTurningRight(),
-        r: () => app.game.entities.create(Asteroid, { pose: { x: 640, y: 340, a: 0 }, radius: 200 }),
+        r: () => app.game.entities.create(Asteroid, {
+            pose: { x: 1080 * Math.random(), y: 680 * Math.random(), a: 2 * Math.PI * Math.random() }, radius: 200,
+        }),
     };
     app.keyboard.handler(shipKeyboardHandler);
 };
