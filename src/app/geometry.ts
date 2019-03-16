@@ -19,7 +19,7 @@ export const rotatePointsAboutOrigin = ({ points, orientation }: {
     });
 };
 
-export const transformShape = ({ shape, pose }: { shape: IShape, pose: IPose }): IShape => {
+export const transformShape = (shape: IShape, pose: IPose): IShape => {
     const points = shape.points.map((point) => {
         return rotatePointAboutOrigin({ point, orientation: pose.a });
     });

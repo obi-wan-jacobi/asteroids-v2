@@ -1,4 +1,4 @@
-import Engine from '../engine/Engine';
+import IEngine from '../engine/interfaces/IEngine';
 import IKeyboardAdaptor from '../engine/interfaces/IKeyboardAdaptor';
 import IMouseAdaptor from '../engine/interfaces/IMouseAdaptor';
 import IViewportAdaptor from '../engine/interfaces/IViewportAdaptor';
@@ -9,12 +9,12 @@ export default class App {
     public viewport: IViewportAdaptor;
     public mouse: IMouseAdaptor;
     public keyboard: IKeyboardAdaptor;
-    public game: Engine;
+    public game: IEngine;
 
     private __isPaused: boolean;
 
     constructor({ viewport, mouse, keyboard, game }
-        : { viewport: IViewportAdaptor, mouse: IMouseAdaptor, keyboard: IKeyboardAdaptor, game: Engine },
+        : { viewport: IViewportAdaptor, mouse: IMouseAdaptor, keyboard: IKeyboardAdaptor, game: IEngine },
     ) {
         this.viewport = viewport;
         this.mouse = mouse;

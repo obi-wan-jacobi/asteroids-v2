@@ -49,4 +49,9 @@ export default class ComponentIndex implements IComponentIndex {
         });
     }
 
+    public forEvery<T extends IComponent<any>>(ComponentCtor: Ctor<T, any>): (fn: (entity: IEntity) => void) => void {
+        const collection = this.__index.read(ComponentCtor.name);
+        return collection ? collection.forEach.bind(collection) : function(): void { return; };
+    }
+
 }

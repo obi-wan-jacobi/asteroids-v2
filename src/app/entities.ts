@@ -1,11 +1,7 @@
 import { Entity } from '../engine/Entity';
 import {
-    Ephemeral, Flair, IPose, IShape, Pose, RigidBody, Shape, Steering, Thrust, Velocity,
+    Ephemeral, Flair, IPose, Pose, Shape, Steering, Thrust, Velocity,
 } from './components';
-import {
-    fromGeoJSONCoordinatesToShapes, fromShapeToGeoJSONCoordinates, getMinMaxShapeBounds, transformShape,
-} from './geometry';
-const martinez = require('martinez-polygon-clipping');
 
 export class Ship extends Entity {
 
@@ -64,7 +60,7 @@ export class Ship extends Entity {
     }
 
     public shoot(): void {
-        this._factory.create(Missile, { pose: this.copy(Pose) });
+        this.$.entities.create(Missile, { pose: this.copy(Pose) });
     }
 
 }
@@ -94,17 +90,16 @@ export class Missile extends Entity {
             length: 40,
             width: 2,
         });
-        this.add(RigidBody)({});
     }
 
     public destroy(): void {
         super.destroy();
-        this._factory.create(Explosion, { pose: this.copy(Pose), radius: 50 });
+        this.$.entities.create(MissileExplosion, { pose: this.copy(Pose), radius: 50 });
     }
 
 }
 
-export class Explosion extends Entity {
+export class MissileExplosion extends Entity {
 
     constructor({ pose, radius }: { pose: IPose, radius: number }) {
         super(arguments[0]);
@@ -114,7 +109,7 @@ export class Explosion extends Entity {
             y: radius * Math.sin(vertex * 2 * Math.PI / 6),
         }))});
         this.add(Velocity)({ x: 0, y: 0, w: Math.PI / 32 });
-        this.add(Ephemeral)({ remaining: 30 });
+        this.add(Ephemeral)({ remaining: 1 });
     }
 
 }
@@ -129,38 +124,6 @@ export class Asteroid extends Entity {
             y: radius * Math.sin(vertex * 2 * Math.PI / 6),
         }))});
         this.add(Velocity)({ x: 0, y: 0, w: 0 });
-        this.add(RigidBody)({});
-    }
-
-    public diff({ pose, shape }: { pose: IPose, shape: IShape }): void {
-        const myPose = this.copy(Pose);
-        const incTransform = transformShape({ shape, pose });
-        const incCoordinates = fromShapeToGeoJSONCoordinates(incTransform);
-        const myTransform = transformShape({ shape: this.copy(Shape), pose: myPose });
-        const myCoordinates = fromShapeToGeoJSONCoordinates(myTransform);
-        const diff = martinez.diff(myCoordinates, incCoordinates);
-        const diffShapes = fromGeoJSONCoordinatesToShapes(diff);
-        this.destroy();
-        if (diffShapes.length === 0) {
-            return;
-        }
-        diffShapes.forEach((diffShape) => {
-            const { x, y } = diffShape.points.reduce((prev, cur) => ({ x: prev.x + cur.x, y: prev.y + cur.y }));
-            const fragPose = {
-                x: x / diffShape.points.length,
-                y: y / diffShape.points.length,
-                a: 0,
-            };
-            const asteroid = this._factory.create(Asteroid, { pose: fragPose, radius: 0 });
-            asteroid.mutate(Shape)({
-                points: diffShape.points.map((point) => ({ x: point.x - fragPose.x, y: point.y - fragPose.y })),
-            });
-            const { minX, maxX, minY, maxY } = getMinMaxShapeBounds(asteroid.copy(Shape));
-            const epsilon = 30;
-            if (maxX - minX < epsilon && maxY - minY < epsilon) {
-                asteroid.destroy();
-            }
-        });
     }
 
 }
