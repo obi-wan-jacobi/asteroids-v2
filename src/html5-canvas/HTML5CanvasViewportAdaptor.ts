@@ -1,6 +1,6 @@
 import IEntity from '../engine/interfaces/IEntity';
 import IViewportAdaptor from '../engine/interfaces/IViewportAdaptor';
-import { ILabel, IPoint, IPose, IRenderProfile, IShape } from '../app/components';
+import { ILabel, IPoint, IPose, IRenderingProfile, IShape } from '../app/components';
 
 function Atomic(target: HTML5CanvasViewportAdaptor, key: string, descriptor: PropertyDescriptor): void {
     const fn = descriptor.value;
@@ -28,8 +28,7 @@ export class HTML5CanvasViewportAdaptor implements IViewportAdaptor {
     }
 
     @Atomic
-    public drawShape(shape: IShape): void {
-        const rendering = shape.rendering || { colour: 'white' };
+    public drawShape({ shape, rendering }: { shape: IShape, rendering: IRenderingProfile }): void {
         this.ctx.strokeStyle = rendering.colour;
         this.ctx.beginPath();
         shape.points.forEach((p: IPoint) => {
@@ -40,7 +39,7 @@ export class HTML5CanvasViewportAdaptor implements IViewportAdaptor {
     }
 
     @Atomic
-    public drawLine({ points, rendering }: { points: IPoint[], rendering: IRenderProfile }): void {
+    public drawLine({ points, rendering }: { points: IPoint[], rendering: IRenderingProfile }): void {
         this.ctx.strokeStyle = rendering.colour;
         this.ctx.beginPath();
         points.forEach((p: IPoint) => {

@@ -6,7 +6,7 @@ export class Point extends Component<IPoint> {}
 export interface IPose { x: number; y: number; a: number; }
 export class Pose extends Component<IPose> {}
 
-export interface IShape { points: IPoint[]; rendering?: IRenderProfile; }
+export interface IShape { points: IPoint[]; rendering?: IRenderingProfile; }
 export class Shape extends Component<IShape> {}
 
 export interface IMinMaxBoundary2D {
@@ -48,8 +48,9 @@ export class Label extends Component<ILabel> {}
 
 export class Flair extends Component<{ offset: { x: number }, length: number, width: number }> {}
 
-export interface IRenderProfile {
+export interface IRenderingProfile {
 
     colour: string;
 
 }
+export class RenderingProfile extends Component<IRenderingProfile> {}

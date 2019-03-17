@@ -1,4 +1,4 @@
-import { ILabel, IPoint, IPose, IRenderProfile, IShape } from '../../app/components';
+import { ILabel, IPoint, IPose, IRenderingProfile, IShape } from '../../app/components';
 
 export default interface IViewportAdaptor {
 
@@ -6,8 +6,8 @@ export default interface IViewportAdaptor {
 
     drawLabel({ pose, label }: { pose: IPose, label: ILabel }): void;
 
-    drawShape(shape: IShape): void;
+    drawShape({ shape, rendering }: { shape: IShape, rendering: IRenderingProfile }): void;
 
-    drawLine({ points, rendering }: { points: IPoint[], rendering: IRenderProfile }): void;
+    drawLine({ points, rendering }: { points: IPoint[], rendering: IRenderingProfile }): void;
 
 }

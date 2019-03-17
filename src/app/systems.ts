@@ -1,9 +1,9 @@
 import IEntity from '../engine/interfaces/IEntity';
 import { System } from '../engine/abstracts/System';
 import {
-    Ephemeral, Flair, IShape, Label, MissileLauncher, Pose, Shape, Steering, Thrust, Velocity,
+    Ephemeral, Flair, IShape, Label, MissileLauncher, Pose, RenderingProfile, Shape, Steering, Thrust, Velocity,
 } from './components';
-import { Asteroid, Missile, MissileExplosion } from './entities';
+import { Asteroid, Missile, MissileExplosion, ThrustStream } from './entities';
 import {
     fromGeoJSONCoordinatesToShapes, fromShapeToGeoJSONCoordinates, getMinMaxShapeBounds,
     isPointInsideShape, transformShape,
@@ -118,6 +118,12 @@ export class ThrustSystem extends System {
                     y: velocity.y + thrust.increment * Math.sin(pose.a),
                     w: velocity.w,
                 });
+                this.$.entities.create(ThrustStream, {
+                    pose,
+                    offset: { x: -10 },
+                    width: 10,
+                    length: 60,
+                });
             }
         });
     }
@@ -190,7 +196,13 @@ export class ShapeSystem extends System {
 
     public draw(): void {
         this.$.entities.forEachWith(Shape)((entity: IEntity) => {
-            this.$.viewport.drawShape(transformShape(entity.copy(Shape), entity.copy(Pose)));
+            const rendering = entity.copy(RenderingProfile);
+            if (rendering) {
+                this.$.viewport.drawShape({
+                    shape: transformShape(entity.copy(Shape), entity.copy(Pose)),
+                    rendering,
+                });
+            }
         });
     }
 }
@@ -243,6 +255,25 @@ export class MissileLauncherSystem extends System {
             launcher.cooldown = launcher.cooldown > 0 ? launcher.cooldown - 1 : 0;
             entity.mutate(MissileLauncher)(launcher);
             return;
+        });
+    }
+
+}
+
+export class ThrustStreamSystem extends System {
+
+    public once(): void {
+        this.$.entities.forEvery(ThrustStream)((thrustStream: ThrustStream) => {
+            this.$.entities.forEvery(Asteroid)((asteroid: Asteroid) => {
+                const thrustShape = transformShape(thrustStream.copy(Shape), thrustStream.copy(Pose));
+                const asteroidShape = transformShape(asteroid.copy(Shape), asteroid.copy(Pose));
+                for (const point of thrustShape.points) {
+                    if (isPointInsideShape(point, asteroidShape)) {
+                        explodeAsteroid(thrustShape, asteroid);
+                        return;
+                    }
+                }
+            });
         });
     }
 
