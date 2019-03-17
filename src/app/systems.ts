@@ -5,22 +5,23 @@ import {
 } from './components';
 import { Asteroid, Missile, MissileExplosion, ThrustStream } from './entities';
 import {
-    fromGeoJSONCoordinatesToShapes, fromShapeToGeoJSONCoordinates, getMinMaxShapeBounds,
-    isPointInsideShape, transformShape,
+    fromGeoJSONCoordinatesToShapes, fromShapeToGeoJSON, getMinMaxShapeBounds, transformShape,
 } from './geometry';
-const polybool = require('polybooljs');
+import turf from 'turf';
+const booleanOverlap = require('@turf/boolean-overlap').default;
 
 export class MissileSystem extends System {
 
     public once(): void {
         this.$.entities.forEvery(Missile)((missile) => {
             this.$.entities.forEvery(Asteroid)((asteroid) => {
+                const missileShape = transformShape(missile.copy(Shape), missile.copy(Pose));
                 const asteroidShape = transformShape(asteroid.copy(Shape), asteroid.copy(Pose));
-                for (const point of transformShape(missile.copy(Shape), missile.copy(Pose)).points) {
-                    if (isPointInsideShape(point, asteroidShape)) {
-                        missile.destroy();
-                        break;
-                    }
+                const missileGeoJSON = fromShapeToGeoJSON(missileShape);
+                const asteroidGeoJSON = fromShapeToGeoJSON(asteroidShape);
+                if (booleanOverlap(missileGeoJSON, asteroidGeoJSON)) {
+                    missile.destroy();
+                    return;
                 }
             });
         });
@@ -35,17 +36,30 @@ export class MissileExplosionSystem extends System {
             this.$.entities.forEvery(Asteroid)((asteroid: Asteroid) => {
                 const explosionShape = transformShape(explosion.copy(Shape), explosion.copy(Pose));
                 const asteroidShape = transformShape(asteroid.copy(Shape), asteroid.copy(Pose));
-                for (const point of explosionShape.points) {
-                    if (isPointInsideShape(point, asteroidShape)) {
-                        explodeAsteroid(explosionShape, asteroid);
-                        return;
-                    }
+                const explosionGeoJSON = fromShapeToGeoJSON(explosionShape);
+                const asteroidGeoJSON = fromShapeToGeoJSON(asteroidShape);
+                if (booleanOverlap(explosionGeoJSON, asteroidGeoJSON)) {
+                    explodeAsteroid(explosionShape, asteroid);
+                    return;
                 }
-                for (const point of asteroidShape.points) {
-                    if (isPointInsideShape(point, explosionShape)) {
-                        explodeAsteroid(explosionShape, asteroid);
-                        return;
-                    }
+            });
+        });
+    }
+
+}
+
+export class ThrustStreamSystem extends System {
+
+    public once(): void {
+        this.$.entities.forEvery(ThrustStream)((thrustStream: ThrustStream) => {
+            this.$.entities.forEvery(Asteroid)((asteroid: Asteroid) => {
+                const thrustShape = transformShape(thrustStream.copy(Shape), thrustStream.copy(Pose));
+                const asteroidShape = transformShape(asteroid.copy(Shape), asteroid.copy(Pose));
+                const thrustGeoJSON = fromShapeToGeoJSON(thrustShape);
+                const asteroidGeoJSON = fromShapeToGeoJSON(asteroidShape);
+                if (booleanOverlap(thrustGeoJSON, asteroidGeoJSON)) {
+                    explodeAsteroid(thrustShape, asteroid);
+                    return;
                 }
             });
         });
@@ -54,12 +68,11 @@ export class MissileExplosionSystem extends System {
 }
 
 const explodeAsteroid = (explosionShape: IShape, asteroid: Asteroid): void => {
-    const geoJSONCoordinates1 = fromShapeToGeoJSONCoordinates(explosionShape);
-    const geoJSONCoordinates2 = fromShapeToGeoJSONCoordinates(
+    const explosionGeoJSON = fromShapeToGeoJSON(explosionShape);
+    const asteroidGeoJSON = fromShapeToGeoJSON(
         transformShape(asteroid.copy(Shape), asteroid.copy(Pose)),
     );
-
-    const remainders = fromGeoJSONCoordinatesToShapes(polybool.difference(geoJSONCoordinates2, geoJSONCoordinates1));
+    const remainders = fromGeoJSONCoordinatesToShapes(turf.difference(asteroidGeoJSON, explosionGeoJSON));
     if (remainders.length === 0) {
         asteroid.destroy();
         return;
@@ -255,25 +268,6 @@ export class MissileLauncherSystem extends System {
             launcher.cooldown = launcher.cooldown > 0 ? launcher.cooldown - 1 : 0;
             entity.mutate(MissileLauncher)(launcher);
             return;
-        });
-    }
-
-}
-
-export class ThrustStreamSystem extends System {
-
-    public once(): void {
-        this.$.entities.forEvery(ThrustStream)((thrustStream: ThrustStream) => {
-            this.$.entities.forEvery(Asteroid)((asteroid: Asteroid) => {
-                const thrustShape = transformShape(thrustStream.copy(Shape), thrustStream.copy(Pose));
-                const asteroidShape = transformShape(asteroid.copy(Shape), asteroid.copy(Pose));
-                for (const point of thrustShape.points) {
-                    if (isPointInsideShape(point, asteroidShape)) {
-                        explodeAsteroid(thrustShape, asteroid);
-                        return;
-                    }
-                }
-            });
         });
     }
 
