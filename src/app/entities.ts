@@ -151,8 +151,8 @@ export class ThrustStream extends Entity {
             this.add(Shape)({ points: [
                 { x: offset.x, y: -width / 2 },
                 { x: -length * 0.7, y: -width * 2.5 },
-                { x: -length * 1.2, y: -width },
-                { x: -length * 1.2, y: width },
+                { x: -length * 1.2, y: -width * 1.2 },
+                { x: -length * 1.2, y: width * 1.2 },
                 { x: -length * 0.7, y: width * 2.5 },
                 { x: offset.x, y: width / 2 },
             ]});
