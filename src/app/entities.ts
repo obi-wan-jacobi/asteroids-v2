@@ -136,7 +136,24 @@ export class MissileExplosionVisual extends Entity {
         }))});
         this.add(Velocity)({ x: 0, y: 0, w: Math.PI / 64 });
         this.add(Ephemeral)({ remaining: 30 });
-        this.add(RenderingProfile)({ colour: 'orange' });
+        this.add(RenderingProfile)({ colour: 'yellow' });
+        this.$.entities.create(MissileExplosionInnerVisual, { pose, radius: radius - 2 });
+    }
+
+}
+
+export class MissileExplosionInnerVisual extends Entity {
+
+    constructor({ pose, radius }: { pose: IPose, radius: number }) {
+        super(arguments[0]);
+        this.add(Pose)(pose);
+        this.add(Shape)({ points: [1, 2, 3, 4, 5, 6].map((vertex) => ({
+            x: radius * Math.cos(vertex * 2 * Math.PI / 6),
+            y: radius * Math.sin(vertex * 2 * Math.PI / 6),
+        }))});
+        this.add(Velocity)({ x: 0, y: 0, w: -Math.PI / 64 });
+        this.add(Ephemeral)({ remaining: 30 });
+        this.add(RenderingProfile)({ colour: 'blue' });
     }
 
 }
