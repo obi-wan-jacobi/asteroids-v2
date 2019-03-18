@@ -9,9 +9,9 @@ import { Label, Pose } from './components';
 import { Asteroid, Ship } from './entities';
 import $ from 'jquery';
 import {
-    EphemeralSystem, FlairSystem, LabelSystem,
-    MissileExplosionSystem, MissileLauncherSystem, MissileSystem, MovementSystem,
-    ShapeSystem, SteeringSystem, ThrustStreamSystem, ThrustSystem,
+    BooleanAsteroidSubtractorSystem, EphemeralSystem, FPSSystem,
+    FlairSystem, LabelSystem, MissileLauncherSystem, MissileSystem,
+    MovementSystem, ShapeSystem, SteeringSystem, ThrustSystem,
 } from './systems';
 
 const canvas = $('#app-target').get(0) as HTMLCanvasElement;
@@ -32,13 +32,13 @@ app.game.systems.add(MovementSystem, app.game);
 app.game.systems.add(SteeringSystem, app.game);
 app.game.systems.add(ThrustSystem, app.game);
 app.game.systems.add(MissileSystem, app.game);
-app.game.systems.add(MissileExplosionSystem, app.game);
+app.game.systems.add(BooleanAsteroidSubtractorSystem, app.game);
 app.game.systems.add(LabelSystem, app.game);
 app.game.systems.add(ShapeSystem, app.game);
 app.game.systems.add(FlairSystem, app.game);
 app.game.systems.add(MissileLauncherSystem, app.game);
-app.game.systems.add(ThrustStreamSystem, app.game);
 app.game.systems.add(EphemeralSystem, app.game);
+app.game.systems.add(FPSSystem, app.game);
 
 app.start();
 

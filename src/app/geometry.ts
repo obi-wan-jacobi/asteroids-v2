@@ -63,6 +63,9 @@ export const fromShapeToGeoJSON = (shape: IShape): Feature<Polygon, GeoJsonPrope
 };
 
 export const fromGeoJSONCoordinatesToShapes = (geoJSON: Feature<Polygon|MultiPolygon, GeoJsonProperties>): IShape[] => {
+    if (!geoJSON) {
+        return [];
+    }
     if (geoJSON.geometry.type === 'Polygon') {
         return geoJSON.geometry.coordinates.map((points: number[][]) => {
             return { points: points.map((vertex: number[]) => ({ x: vertex[0], y: vertex[1] })) };

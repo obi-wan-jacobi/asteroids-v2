@@ -1,6 +1,7 @@
 import { Entity } from '../engine/Entity';
 import {
-    Ephemeral, Flair, IPose, MissileLauncher, Pose, RenderingProfile, Shape, Steering, Thrust, Velocity,
+    BooleanAsteroidSubtractor, Ephemeral, Flair, IPose, MissileLauncher,
+    Pose, RenderingProfile, Shape, Steering, Thrust, Velocity,
 } from './components';
 
 export class Ship extends Entity {
@@ -114,6 +115,7 @@ export class MissileExplosion extends Entity {
             y: radius * Math.sin(vertex * 2 * Math.PI / 10),
         }))});
         this.add(Ephemeral)({ remaining: 1 });
+        this.add(BooleanAsteroidSubtractor)({});
     }
 
     public destroy(): void {
@@ -139,6 +141,27 @@ export class MissileExplosionVisual extends Entity {
 
 }
 
+export class ThrustStream extends Entity {
+
+    constructor({ pose, offset, width, length }:
+        { pose: IPose, offset: { x: number }, width: number, length: number },
+        ) {
+            super(arguments[0]);
+            this.add(Pose)(pose);
+            this.add(Shape)({ points: [
+                { x: offset.x, y: -width / 2 },
+                { x: -length * 0.7, y: -width * 2.5 },
+                { x: -length * 1.2, y: -width },
+                { x: -length * 1.2, y: width },
+                { x: -length * 0.7, y: width * 2.5 },
+                { x: offset.x, y: width / 2 },
+            ]});
+            this.add(Ephemeral)({ remaining: 1 });
+            this.add(BooleanAsteroidSubtractor)({});
+        }
+
+    }
+
 export class Asteroid extends Entity {
 
     constructor({ pose, radius }: { pose: IPose, radius: number }) {
@@ -150,27 +173,6 @@ export class Asteroid extends Entity {
         }))});
         this.add(Velocity)({ x: 0, y: 0, w: Math.PI / 1024 });
         this.add(RenderingProfile)({ colour: 'white' });
-    }
-
-}
-
-export class ThrustStream extends Entity {
-
-    constructor({ pose, offset, width, length }:
-        { pose: IPose, offset: { x: number }, width: number, length: number },
-    ) {
-        super(arguments[0]);
-        this.add(Pose)(pose);
-        this.add(Shape)({ points: [
-            { x: offset.x, y: -width / 2 },
-            { x: -length * 0.7, y: -width * 2.5 },
-            { x: -length * 1.2, y: -width },
-            { x: -length * 1.2, y: width },
-            { x: -length * 0.7, y: width * 2.5 },
-            { x: offset.x, y: width / 2 },
-        ]});
-        this.add(Ephemeral)({ remaining: 1 });
-        this.add(RenderingProfile)({ colour: 'yellow' });
     }
 
 }

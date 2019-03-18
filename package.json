@@ -14,6 +14,7 @@
     "serve": "npm run build && npm run webpack-dev-server"
   },
   "dependencies": {
+    "@turf/boolean-contains": "^6.0.1",
     "@turf/boolean-overlap": "^6.0.1",
     "@types/turf": "^3.5.32",
     "jquery": "^3.3.1",

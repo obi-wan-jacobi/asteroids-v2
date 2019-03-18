@@ -54,3 +54,5 @@ export interface IRenderingProfile {
 
 }
 export class RenderingProfile extends Component<IRenderingProfile> {}
+
+export class BooleanAsteroidSubtractor extends Component<{}> {}
