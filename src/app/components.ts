@@ -29,19 +29,15 @@ export class ShapeBuilder {
 
 }
 
-export interface IVelocity { x: number; y: number; w: number; }
-export class Velocity extends Component<IVelocity> {}
+export class Velocity extends Component<{ x: number; y: number; w: number; }> {}
 
-export interface IAcceleration { x: number; y: number; w: number; }
-export class Acceleration extends Component<IAcceleration> {}
+export class Acceleration extends Component<{ x: number; y: number; w: number; }> {}
 
-export class Thrust extends Component<{ state: string, topSpeed: number, increment: number }> {}
-
-export class Steering extends Component<{ direction: string }> {}
+export class Thruster extends Component<{ state: string }> {}
 
 export class Ephemeral extends Component<{ remaining: number }> {}
 
-export class MissileLauncher extends Component<{ state: string, cooldown: number }> {}
+export class MissileLauncher extends Component<{ state: string, cooldown: number, timer: number }> {}
 
 export interface ILabel { text: string; fontSize: number; offset: { x: number, y: number }; }
 export class Label extends Component<ILabel> {}

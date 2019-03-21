@@ -55,4 +55,10 @@ export class HTML5CanvasViewportAdaptor implements IViewportAdaptor {
         this.ctx.fillText(label.text, pose.x + label.offset.x, pose.y + label.offset.y);
     }
 
+    @Atomic
+    public drawPoint({ point }: { point: IPoint }): void {
+        this.ctx.fillStyle = 'magenta';
+        this.ctx.fillRect(point.x, point.y, 4, 4);
+    }
+
 }

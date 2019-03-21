@@ -1,7 +1,7 @@
 import { Entity } from '../engine/Entity';
 import {
-    BooleanAsteroidSubtractor, Ephemeral, Flair, IPose, MissileLauncher,
-    Pose, RenderingProfile, Shape, Steering, Thrust, Velocity,
+    Acceleration, BooleanAsteroidSubtractor, Ephemeral, Flair, IPose,
+    MissileLauncher, Pose, RenderingProfile, Shape, Thruster, Velocity,
 } from './components';
 
 export class Ship extends Entity {
@@ -16,16 +16,20 @@ export class Ship extends Entity {
         ]});
         this.add(Pose)(pose);
         this.add(Velocity)({ x: 0, y: 0, w: 0 });
-        this.add(Steering)({ direction: 'NONE' });
-        this.add(Thrust)({ state: 'IDLE', topSpeed: 10, increment: 0.02 });
-        this.add(MissileLauncher)({ state: 'IDLE', cooldown: 0 });
+        this.add(Acceleration)({ x: 0, y: 0, w: 0 });
+        this.add(Thruster)({ state: 'IDLE' });
+        this.add(MissileLauncher)({ state: 'IDLE', cooldown: 200, timer: 200 });
         this.add(RenderingProfile)({ colour: 'white' });
     }
 
     public accelerate(): void {
-        const thrust = this.copy(Thrust);
-        thrust.state = 'ACCELERATE';
-        this.mutate(Thrust)(thrust);
+        const factor = 0.0005;
+        const pose = this.copy(Pose);
+        const acceleration = this.copy(Acceleration);
+        acceleration.x = factor * Math.cos(pose.a);
+        acceleration.y = factor * Math.sin(pose.a);
+        this.mutate(Acceleration)(acceleration);
+        this.mutate(Thruster)({ state: 'ACCELERATE' });
         this.add(Flair)({
             offset: { x: -10 },
             length: 60,
@@ -34,31 +38,39 @@ export class Ship extends Entity {
     }
 
     public idle(): void {
-        const thrust = this.copy(Thrust);
-        thrust.state = 'IDLE';
-        this.mutate(Thrust)(thrust);
+        const acceleration = this.copy(Acceleration);
+        acceleration.x = 0;
+        acceleration.y = 0;
+        this.mutate(Acceleration)(acceleration);
+        this.mutate(Thruster)({ state: 'IDLE' });
         this.remove(Flair);
     }
 
     public turnLeft(): void {
-        this.mutate(Steering)({ direction: 'LEFT' });
+        const velocity = this.copy(Velocity);
+        velocity.w = -Math.PI / 512;
+        this.mutate(Velocity)(velocity);
     }
 
     public stopTurningLeft(): void {
-        const steering = this.copy(Steering);
-        if (steering.direction === 'LEFT') {
-            this.mutate(Steering)({ direction: 'NONE' });
+        const velocity = this.copy(Velocity);
+        if (velocity.w < 0 ) {
+            velocity.w = 0;
+            this.mutate(Velocity)(velocity);
         }
     }
 
     public turnRight(): void {
-        this.mutate(Steering)({ direction: 'RIGHT' });
+        const velocity = this.copy(Velocity);
+        velocity.w = Math.PI / 512;
+        this.mutate(Velocity)(velocity);
     }
 
     public stopTurningRight(): void {
-        const steering = this.copy(Steering);
-        if (steering.direction === 'RIGHT') {
-            this.mutate(Steering)({ direction: 'NONE' });
+        const velocity = this.copy(Velocity);
+        if (velocity.w > 0 ) {
+            velocity.w = 0;
+            this.mutate(Velocity)(velocity);
         }
     }
 
@@ -80,11 +92,11 @@ export class Missile extends Entity {
             a: pose.a,
         });
         this.add(Velocity)({
-            x: 5 * Math.cos(pose.a),
-            y: 5 * Math.sin(pose.a),
+            x: 1.0 * Math.cos(pose.a),
+            y: 1.0 * Math.sin(pose.a),
             w: 0,
         });
-        this.add(Ephemeral)({ remaining: 100 });
+        this.add(Ephemeral)({ remaining: 500 });
         this.add(Shape)({ points: [
             { x: 10, y: 0 },
             { x: -10, y: -2 },
@@ -134,8 +146,8 @@ export class MissileExplosionVisual extends Entity {
             x: radius * Math.cos(vertex * 2 * Math.PI / 6),
             y: radius * Math.sin(vertex * 2 * Math.PI / 6),
         }))});
-        this.add(Velocity)({ x: 0, y: 0, w: Math.PI / 64 });
-        this.add(Ephemeral)({ remaining: 30 });
+        this.add(Velocity)({ x: 0, y: 0, w: Math.PI / 1024 });
+        this.add(Ephemeral)({ remaining: 300 });
         this.add(RenderingProfile)({ colour: 'yellow' });
         this.$.entities.create(MissileExplosionInnerVisual, { pose, radius: radius - 2 });
     }
@@ -151,8 +163,8 @@ export class MissileExplosionInnerVisual extends Entity {
             x: radius * Math.cos(vertex * 2 * Math.PI / 6),
             y: radius * Math.sin(vertex * 2 * Math.PI / 6),
         }))});
-        this.add(Velocity)({ x: 0, y: 0, w: -Math.PI / 64 });
-        this.add(Ephemeral)({ remaining: 30 });
+        this.add(Velocity)({ x: 0, y: 0, w: -Math.PI / 1024 });
+        this.add(Ephemeral)({ remaining: 300 });
         this.add(RenderingProfile)({ colour: 'blue' });
     }
 
@@ -188,7 +200,7 @@ export class Asteroid extends Entity {
             x: radius * Math.cos(vertex * 2 * Math.PI / 6),
             y: radius * Math.sin(vertex * 2 * Math.PI / 6),
         }))});
-        this.add(Velocity)({ x: 0, y: 0, w: Math.PI / 1024 });
+        this.add(Velocity)({ x: 0, y: 0, w: Math.PI / (1024 * 4) });
         this.add(RenderingProfile)({ colour: 'white' });
     }
 

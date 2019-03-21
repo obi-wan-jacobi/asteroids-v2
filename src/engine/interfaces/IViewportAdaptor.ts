@@ -10,4 +10,6 @@ export default interface IViewportAdaptor {
 
     drawLine({ points, rendering }: { points: IPoint[], rendering: IRenderingProfile }): void;
 
+    drawPoint({ point }: { point: IPoint }): void;
+
 }

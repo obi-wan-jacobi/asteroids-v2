@@ -1,8 +1,8 @@
 import IEntity from '../engine/interfaces/IEntity';
 import { System } from '../engine/abstracts/System';
 import {
-    BooleanAsteroidSubtractor, Ephemeral, Flair, IPoint,
-    IShape, Label, MissileLauncher, Pose, RenderingProfile, Shape, Steering, Thrust, Velocity,
+    Acceleration, BooleanAsteroidSubtractor, Ephemeral, Flair,
+    IPoint, IShape, Label, MissileLauncher, Pose, RenderingProfile, Shape, Thruster, Velocity,
 } from './components';
 import { Asteroid, Missile, ThrustStream } from './entities';
 import {
@@ -12,6 +12,25 @@ import {
 import turf from 'turf';
 const booleanOverlap = require('@turf/boolean-overlap').default;
 const booleanContains = require('@turf/boolean-contains').default;
+
+export class ThrustSystem extends System {
+
+    public once(): void {
+        this.$.entities.forEachWith(Thruster)((entity) => {
+            const thruster = entity.copy(Thruster);
+            if (thruster.state === 'ACCELERATE') {
+                this.$.entities.create(ThrustStream, {
+                    pose: entity.copy(Pose),
+                    offset: { x: -10 },
+                    width: 10,
+                    length: 60,
+                });
+                return;
+            }
+        });
+    }
+
+}
 
 export class MissileSystem extends System {
 
@@ -57,7 +76,12 @@ const explodeAsteroid = (explosionShape: IShape, asteroid: Asteroid): void => {
     const asteroidGeoJSON = fromShapeToGeoJSON(
         transformShape(asteroid.copy(Shape), asteroid.copy(Pose)),
     );
-    const remainders = fromGeoJSONCoordinatesToShapes(turf.difference(asteroidGeoJSON, explosionGeoJSON));
+    let remainders: IShape[] = [];
+    try {
+        remainders = fromGeoJSONCoordinatesToShapes(turf.difference(asteroidGeoJSON, explosionGeoJSON));
+    } catch {
+        remainders = [];
+    }
     if (remainders.length === 0) {
         asteroid.destroy();
         return;
@@ -130,37 +154,28 @@ export class EphemeralSystem extends System {
     public once(): void {
         this.$.entities.forEachWith(Ephemeral)((entity: IEntity) => {
             const { remaining } = entity.copy(Ephemeral);
-            if (remaining === 1) {
+            if (remaining <= 0) {
                 return entity.destroy();
             }
             entity.mutate(Ephemeral)({
-                remaining: remaining - 1,
+                remaining: remaining - this.$.delta,
             });
         });
     }
 
 }
 
-export class ThrustSystem extends System {
+export class AccelerationSystem extends System {
 
     public once(): void {
-        this.$.entities.forEachWith(Thrust)((entity: IEntity) => {
-            const pose = entity.copy(Pose);
-            const thrust = entity.copy(Thrust);
+        this.$.entities.forEachWith(Acceleration)((entity: IEntity) => {
+            const acceleration = entity.copy(Acceleration);
             const velocity = entity.copy(Velocity);
-            if (thrust.state === 'ACCELERATE') {
-                entity.mutate(Velocity)({
-                    x: velocity.x + thrust.increment * Math.cos(pose.a),
-                    y: velocity.y + thrust.increment * Math.sin(pose.a),
-                    w: velocity.w,
-                });
-                this.$.entities.create(ThrustStream, {
-                    pose,
-                    offset: { x: -10 },
-                    width: 10,
-                    length: 60,
-                });
-            }
+            entity.mutate(Velocity)({
+                x: velocity.x + this.$.delta * acceleration.x,
+                y: velocity.y + this.$.delta * acceleration.y,
+                w: velocity.w + this.$.delta * acceleration.w,
+            });
         });
     }
 
@@ -171,14 +186,14 @@ export class MissileLauncherSystem extends System {
     public once(): void {
         this.$.entities.forEachWith(MissileLauncher)((entity: IEntity) => {
             const launcher = entity.copy(MissileLauncher);
-            if (launcher.state === 'FIRE' && launcher.cooldown === 0) {
+            if (launcher.state === 'FIRE' && launcher.timer >= launcher.cooldown) {
                 this.$.entities.create(Missile, { pose: entity.copy(Pose) });
                 launcher.state = 'IDLE';
-                launcher.cooldown = 30;
+                launcher.timer = 0;
                 entity.mutate(MissileLauncher)(launcher);
                 return;
             }
-            launcher.cooldown = launcher.cooldown > 0 ? launcher.cooldown - 1 : 0;
+            launcher.timer = launcher.timer < launcher.cooldown ? launcher.timer + this.$.delta : launcher.cooldown;
             entity.mutate(MissileLauncher)(launcher);
             return;
         });
@@ -194,13 +209,15 @@ export class MovementSystem extends System {
 
     public once(): void {
         this.$.entities.forEachWith(Velocity)((entity: IEntity) => {
+            // velocity system
             const pose = entity.copy(Pose);
             const velocity = entity.copy(Velocity);
             entity.mutate(Pose)({
-                x: pose.x + velocity.x,
-                y: pose.y + velocity.y,
-                a: pose.a + velocity.w,
+                x: pose.x + this.$.delta * velocity.x,
+                y: pose.y + this.$.delta * velocity.y,
+                a: pose.a + this.$.delta * velocity.w,
             });
+            // boundary system
             let { x, y, a } = entity.copy(Pose);
             if (x < this.__boundary.minX) {
                 x = this.__boundary.maxX;
@@ -220,33 +237,6 @@ export class MovementSystem extends System {
     }
 
 }
-
-export class SteeringSystem extends System {
-
-    public once(): void {
-        this.$.entities.forEachWith(Steering)((entity: IEntity) => {
-            const steering = entity.copy(Steering);
-            if (steering.direction === 'LEFT') {
-                return turnLeft(entity);
-            }
-            if (steering.direction === 'RIGHT') {
-                return turnRight(entity);
-            }
-        });
-    }
-
-}
-
-const turnLeft = (ship: IEntity): void => {
-    const pose = ship.copy(Pose);
-    pose.a += - Math.PI / 48;
-    ship.mutate(Pose)(pose);
-};
-const turnRight = (ship: IEntity): void => {
-    const pose = ship.copy(Pose);
-    pose.a += Math.PI / 48;
-    ship.mutate(Pose)(pose);
-};
 
 export class ShapeSystem extends System {
 
@@ -300,31 +290,35 @@ export class FPSSystem extends System {
 
     private __printValue = '';
     private __nodeCount = 0;
-    private __lastTick = new Date().getTime();
     private __printCounter = 0;
 
     public draw(): void {
-        const timeSinceLastFrame = new Date().getTime() - this.__lastTick;
-        this.__lastTick = new Date().getTime();
+        let nodes = 0;
         this.__printCounter++;
         if (this.__printCounter === 30) {
-            this.__printCounter = 0;
-            this.__printValue = `${1000.0 / 120.0 - timeSinceLastFrame}`;
-            let nodes = 0;
             this.$.entities.forEach((entity) => {
                 const shape = entity.copy(Shape);
                 if (shape) {
-                    nodes += entity.copy(Shape).points.length;
+                    nodes += shape.points.length;
+                    // transformShape(shape, entity.copy(Pose)).points.forEach((point) => {
+                    //     this.$.viewport.drawPoint({ point });
+                    // });
                 }
             });
+            this.__printCounter = 0;
+            this.__printValue = `${Math.round(1000 / this.$.delta)}`;
             this.__nodeCount = nodes;
         }
         this.$.viewport.drawLabel({
-            pose: { x: 40, y: 40, a: 0 },
+            pose: { x: 0, y: 680, a: 0 },
             label: { fontSize: 20, text: this.__printValue, offset: { x: 0, y: 0 } },
         });
         this.$.viewport.drawLabel({
-            pose: { x: 40, y: 80, a: 0 },
+            pose: { x: 28, y: 680, a: 0 },
+            label: { fontSize: 20, text: ':', offset: { x: 0, y: 0 } },
+        });
+        this.$.viewport.drawLabel({
+            pose: { x: 40, y: 680, a: 0 },
             label: { fontSize: 20, text: `${this.__nodeCount}`, offset: { x: 0, y: 0 } },
         });
     }

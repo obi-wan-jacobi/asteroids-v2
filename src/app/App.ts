@@ -9,7 +9,7 @@ export default class App {
     public viewport: IViewportAdaptor;
     public mouse: IMouseAdaptor;
     public keyboard: IKeyboardAdaptor;
-    public game: IEngine;
+    public engine: IEngine;
 
     private __isPaused: boolean;
 
@@ -19,7 +19,7 @@ export default class App {
         this.viewport = viewport;
         this.mouse = mouse;
         this.keyboard = keyboard;
-        this.game = game;
+        this.engine = game;
         this.__isPaused = false;
     }
 
@@ -32,13 +32,13 @@ export default class App {
         this.mouse.once();
         this.keyboard.once();
         if (!this.__isPaused) {
-            this.game.once();
+            this.engine.once();
         }
-        this.game.draw();
+        this.engine.draw();
     }
 
     public start(): void {
-        loop = setInterval(this.once.bind(this), 1000 / 120);
+        loop = setInterval(this.once.bind(this), 1000 / 60);
     }
 
     public stop(): void {
@@ -54,7 +54,7 @@ export default class App {
     }
 
     public tick(): void {
-        this.game.once();
+        this.engine.once();
     }
 
 }
