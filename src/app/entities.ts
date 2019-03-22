@@ -1,7 +1,7 @@
 import { Entity } from '../engine/Entity';
 import {
-    Acceleration, BooleanAsteroidSubtractor, Ephemeral, Flair, IPose,
-    MissileLauncher, Pose, RenderingProfile, Shape, Thruster, Velocity,
+    Acceleration, BooleanAsteroidSubtractor, Ephemeral, Flair, Hull,
+    IPoint, IPose, MissileLauncher, Pose, RenderingProfile, Shape, Thruster, Velocity,
 } from './components';
 
 export class Ship extends Entity {
@@ -18,6 +18,7 @@ export class Ship extends Entity {
         this.add(Velocity)({ x: 0, y: 0, w: 0 });
         this.add(Acceleration)({ x: 0, y: 0, w: 0 });
         this.add(Thruster)({ state: 'IDLE' });
+        this.add(Hull)({});
         this.add(MissileLauncher)({ state: 'IDLE', cooldown: 200, timer: 200 });
         this.add(RenderingProfile)({ colour: 'white' });
     }
@@ -96,6 +97,7 @@ export class Missile extends Entity {
             y: 1.0 * Math.sin(pose.a),
             w: 0,
         });
+        this.add(Hull)({});
         this.add(Ephemeral)({ remaining: 500 });
         this.add(Shape)({ points: [
             { x: 10, y: 0 },
@@ -193,14 +195,25 @@ export class ThrustStream extends Entity {
 
 export class Asteroid extends Entity {
 
-    constructor({ pose, radius }: { pose: IPose, radius: number }) {
+    constructor({ pose, innerRadius, outerRadius, numberOfVertices }:
+        { pose: IPose, innerRadius: number, outerRadius: number, numberOfVertices: number },
+    ) {
         super(arguments[0]);
         this.add(Pose)(pose);
-        this.add(Shape)({ points: [1, 2, 3, 4, 5, 6].map((vertex) => ({
-            x: radius * Math.cos(vertex * 2 * Math.PI / 6),
-            y: radius * Math.sin(vertex * 2 * Math.PI / 6),
-        }))});
-        this.add(Velocity)({ x: 0, y: 0, w: Math.PI / (1024 * 4) });
+        const points: IPoint[] = [];
+        for (let i = 1, L = numberOfVertices; i <= L; i++) {
+            const r = innerRadius + outerRadius * Math.random();
+            points.push({
+                x: r * Math.cos(i * 2 * Math.PI / numberOfVertices),
+                y: r * Math.sin(i * 2 * Math.PI / numberOfVertices),
+            });
+        }
+        this.add(Shape)({ points });
+        this.add(Velocity)({
+            x: 0.05 - 0.1 * Math.random(),
+            y: 0.05 - 0.1 * Math.random(),
+            w: Math.PI / 4096 - Math.random() * Math.PI / 2048,
+        });
         this.add(RenderingProfile)({ colour: 'white' });
     }
 

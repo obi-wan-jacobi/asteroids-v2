@@ -35,6 +35,8 @@ export class Acceleration extends Component<{ x: number; y: number; w: number; }
 
 export class Thruster extends Component<{ state: string }> {}
 
+export class Hull extends Component<{}> {}
+
 export class Ephemeral extends Component<{ remaining: number }> {}
 
 export class MissileLauncher extends Component<{ state: string, cooldown: number, timer: number }> {}

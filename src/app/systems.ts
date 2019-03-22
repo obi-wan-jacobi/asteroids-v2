@@ -2,7 +2,7 @@ import IEntity from '../engine/interfaces/IEntity';
 import { System } from '../engine/abstracts/System';
 import {
     Acceleration, BooleanAsteroidSubtractor, Ephemeral, Flair,
-    IPoint, IShape, Label, MissileLauncher, Pose, RenderingProfile, Shape, Thruster, Velocity,
+    Hull, IPoint, IShape, Label, MissileLauncher, Pose, RenderingProfile, Shape, Thruster, Velocity,
 } from './components';
 import { Asteroid, Missile, ThrustStream } from './entities';
 import {
@@ -32,17 +32,17 @@ export class ThrustSystem extends System {
 
 }
 
-export class MissileSystem extends System {
+export class HullSystem extends System {
 
     public once(): void {
-        this.$.entities.forEvery(Missile)((missile) => {
+        this.$.entities.forEachWith(Hull)((entity) => {
             this.$.entities.forEvery(Asteroid)((asteroid) => {
-                const missileShape = transformShape(missile.copy(Shape), missile.copy(Pose));
+                const hullShape = transformShape(entity.copy(Shape), entity.copy(Pose));
                 const asteroidShape = transformShape(asteroid.copy(Shape), asteroid.copy(Pose));
-                const missileGeoJSON = fromShapeToGeoJSON(missileShape);
+                const hullGeoJSON = fromShapeToGeoJSON(hullShape);
                 const asteroidGeoJSON = fromShapeToGeoJSON(asteroidShape);
-                if (booleanOverlap(missileGeoJSON, asteroidGeoJSON)) {
-                    missile.destroy();
+                if (booleanOverlap(hullGeoJSON, asteroidGeoJSON)) {
+                    entity.destroy();
                     return;
                 }
             });
@@ -62,7 +62,7 @@ export class BooleanAsteroidSubtractorSystem extends System {
                 const asteroidGeoJSON = fromShapeToGeoJSON(asteroidShape);
                 if (booleanOverlap(subtractorGeoJSON, asteroidGeoJSON)
                 || booleanContains(subtractorGeoJSON, asteroidGeoJSON)) {
-                    explodeAsteroid(subtractorShape, asteroid);
+                    diffAsteroid(subtractorShape, asteroid);
                     return;
                 }
             });
@@ -71,7 +71,7 @@ export class BooleanAsteroidSubtractorSystem extends System {
 
 }
 
-const explodeAsteroid = (explosionShape: IShape, asteroid: Asteroid): void => {
+const diffAsteroid = (explosionShape: IShape, asteroid: Asteroid): void => {
     const explosionGeoJSON = fromShapeToGeoJSON(explosionShape);
     const asteroidGeoJSON = fromShapeToGeoJSON(
         transformShape(asteroid.copy(Shape), asteroid.copy(Pose)),
@@ -89,7 +89,12 @@ const explodeAsteroid = (explosionShape: IShape, asteroid: Asteroid): void => {
     remainders.forEach(collapseExtraneousVertices);
     transformAsteroidFragment(asteroid, remainders.shift()!);
     remainders.forEach((remainder) => {
-        const fragment = asteroid.$.entities.create(Asteroid, { pose: { x: 0, y: 0, a: 0 }, radius: 0 });
+        const fragment = asteroid.$.entities.create(Asteroid, {
+            pose: { x: 0, y: 0, a: 0 },
+            innerRadius: 0,
+            outerRadius: 0,
+            numberOfVertices: 0,
+        });
         transformAsteroidFragment(fragment, remainder);
     });
 };
@@ -97,13 +102,13 @@ const explodeAsteroid = (explosionShape: IShape, asteroid: Asteroid): void => {
 const collapseExtraneousVertices = (shape: IShape) => {
     let collapsed: IPoint[] = [];
     while (shape.points.length) {
-        const line = collapse(shape.points);
+        const line = collapseContiguousArc(shape.points);
         collapsed = collapsed.concat(line);
     }
     shape.points = collapsed;
 };
 
-const collapse = (target: IPoint[]): IPoint[] => {
+const collapseContiguousArc = (target: IPoint[]): IPoint[] => {
     if (target.length === 0) {
         return [];
     }
