@@ -10,6 +10,8 @@ export default class App {
     public keyboard: IKeyboardAdaptor;
     public engine: IEngine;
 
+    private __onLoop: () => void;
+
     constructor({ viewport, mouse, keyboard, game }
         : { viewport: IViewportAdaptor, mouse: IMouseAdaptor, keyboard: IKeyboardAdaptor, game: IEngine },
     ) {
@@ -17,6 +19,11 @@ export default class App {
         this.mouse = mouse;
         this.keyboard = keyboard;
         this.engine = game;
+        this.__onLoop = () => undefined;
+    }
+
+    public onLoop(onLoop: () => void): void {
+        this.__onLoop = onLoop;
     }
 
     public once(): void {
@@ -25,6 +32,7 @@ export default class App {
         this.keyboard.once();
         this.engine.once();
         this.engine.draw();
+        this.__onLoop();
     }
 
     public start(): void {

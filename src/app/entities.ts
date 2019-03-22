@@ -24,12 +24,6 @@ export class Ship extends Entity {
     }
 
     public accelerate(): void {
-        const factor = 0.0005;
-        const pose = this.copy(Pose);
-        const acceleration = this.copy(Acceleration);
-        acceleration.x = factor * Math.cos(pose.a);
-        acceleration.y = factor * Math.sin(pose.a);
-        this.mutate(Acceleration)(acceleration);
         this.mutate(Thruster)({ state: 'ACCELERATE' });
         this.add(Flair)({
             offset: { x: -10 },
@@ -81,6 +75,23 @@ export class Ship extends Entity {
         this.mutate(MissileLauncher)(missileLauncher);
     }
 
+    public destroy(): void {
+        super.destroy();
+        this.$.entities.create(ExplosionArea, { pose: this.copy(Pose), radius: 200 });
+        this.$.entities.create(ExplosionVisual, {
+            pose: this.copy(Pose),
+            radius: 200,
+            spin: -Math.PI / 1024,
+            colour: 'yellow',
+        });
+        this.$.entities.create(ExplosionVisual, {
+            pose: this.copy(Pose),
+            radius: 198,
+            spin: Math.PI / 1024,
+            colour: 'red',
+        });
+    }
+
 }
 
 export class Missile extends Entity {
@@ -114,12 +125,24 @@ export class Missile extends Entity {
 
     public destroy(): void {
         super.destroy();
-        this.$.entities.create(MissileExplosion, { pose: this.copy(Pose), radius: 50 });
+        this.$.entities.create(ExplosionArea, { pose: this.copy(Pose), radius: 50 });
+        this.$.entities.create(ExplosionVisual, {
+            pose: this.copy(Pose),
+            radius: 50,
+            spin: -Math.PI / 1024,
+            colour: 'yellow',
+        });
+        this.$.entities.create(ExplosionVisual, {
+            pose: this.copy(Pose),
+            radius: 48,
+            spin: Math.PI / 1024,
+            colour: 'blue',
+        });
     }
 
 }
 
-export class MissileExplosion extends Entity {
+export class ExplosionArea extends Entity {
 
     constructor({ pose, radius }: { pose: IPose, radius: number }) {
         super(arguments[0]);
@@ -132,42 +155,20 @@ export class MissileExplosion extends Entity {
         this.add(BooleanAsteroidSubtractor)({});
     }
 
-    public destroy(): void {
-        super.destroy();
-        this.$.entities.create(MissileExplosionVisual, { pose: this.copy(Pose), radius: 50 });
-    }
-
 }
 
-export class MissileExplosionVisual extends Entity {
+export class ExplosionVisual extends Entity {
 
-    constructor({ pose, radius }: { pose: IPose, radius: number }) {
+    constructor({ pose, radius, spin, colour }: { pose: IPose, radius: number, spin: number, colour: string }) {
         super(arguments[0]);
         this.add(Pose)(pose);
         this.add(Shape)({ points: [1, 2, 3, 4, 5, 6].map((vertex) => ({
             x: radius * Math.cos(vertex * 2 * Math.PI / 6),
             y: radius * Math.sin(vertex * 2 * Math.PI / 6),
         }))});
-        this.add(Velocity)({ x: 0, y: 0, w: Math.PI / 1024 });
+        this.add(Velocity)({ x: 0, y: 0, w: spin });
         this.add(Ephemeral)({ remaining: 300 });
-        this.add(RenderingProfile)({ colour: 'yellow' });
-        this.$.entities.create(MissileExplosionInnerVisual, { pose, radius: radius - 2 });
-    }
-
-}
-
-export class MissileExplosionInnerVisual extends Entity {
-
-    constructor({ pose, radius }: { pose: IPose, radius: number }) {
-        super(arguments[0]);
-        this.add(Pose)(pose);
-        this.add(Shape)({ points: [1, 2, 3, 4, 5, 6].map((vertex) => ({
-            x: radius * Math.cos(vertex * 2 * Math.PI / 6),
-            y: radius * Math.sin(vertex * 2 * Math.PI / 6),
-        }))});
-        this.add(Velocity)({ x: 0, y: 0, w: -Math.PI / 1024 });
-        this.add(Ephemeral)({ remaining: 300 });
-        this.add(RenderingProfile)({ colour: 'blue' });
+        this.add(RenderingProfile)({ colour });
     }
 
 }

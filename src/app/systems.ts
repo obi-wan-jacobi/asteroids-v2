@@ -19,6 +19,12 @@ export class ThrustSystem extends System {
         this.$.entities.forEachWith(Thruster)((entity) => {
             const thruster = entity.copy(Thruster);
             if (thruster.state === 'ACCELERATE') {
+                const factor = 0.0003;
+                const pose = entity.copy(Pose);
+                const acceleration = entity.copy(Acceleration);
+                acceleration.x = factor * Math.cos(pose.a);
+                acceleration.y = factor * Math.sin(pose.a);
+                entity.mutate(Acceleration)(acceleration);
                 this.$.entities.create(ThrustStream, {
                     pose: entity.copy(Pose),
                     offset: { x: -10 },
