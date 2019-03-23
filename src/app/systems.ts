@@ -31,8 +31,14 @@ export class ThrustSystem extends System {
                     width: 10,
                     length: 60,
                 });
+                entity.add(Flair)({
+                    offset: { x: -10 },
+                    length: 60,
+                    width: 10,
+                });
                 return;
             }
+            entity.remove(Flair);
         });
     }
 
@@ -311,9 +317,6 @@ export class FPSSystem extends System {
                 const shape = entity.copy(Shape);
                 if (shape) {
                     nodes += shape.points.length;
-                    // transformShape(shape, entity.copy(Pose)).points.forEach((point) => {
-                    //     this.$.viewport.drawPoint({ point });
-                    // });
                 }
             });
             this.__printCounter = 0;
@@ -322,15 +325,7 @@ export class FPSSystem extends System {
         }
         this.$.viewport.drawLabel({
             pose: { x: 0, y: 680, a: 0 },
-            label: { fontSize: 20, text: this.__printValue, offset: { x: 0, y: 0 } },
-        });
-        this.$.viewport.drawLabel({
-            pose: { x: 28, y: 680, a: 0 },
-            label: { fontSize: 20, text: ':', offset: { x: 0, y: 0 } },
-        });
-        this.$.viewport.drawLabel({
-            pose: { x: 40, y: 680, a: 0 },
-            label: { fontSize: 20, text: `${this.__nodeCount}`, offset: { x: 0, y: 0 } },
+            label: { fontSize: 20, text: `${this.__printValue} : ${this.__nodeCount}`, offset: { x: 0, y: 0 } },
         });
     }
 

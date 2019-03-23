@@ -49,13 +49,14 @@ let LIVES = 3;
 let ship: Ship;
 const setup = (): void => {
     LEVEL = 0;
+    LIVES = 3;
     app.onLoop(() => undefined);
-    destroyAllEntities();
+    clearAll();
     createStartBlurb();
     registerSetupKeyboardHandler();
 };
 
-const destroyAllEntities = (): void => {
+const clearAll = (): void => {
     app.engine.entities.forEach((entity) => entity.destroy());
 };
 
@@ -69,7 +70,7 @@ const registerSetupKeyboardHandler = (): void => {
     const setupKeyboardHandler = new KeyboardHandler();
     setupKeyboardHandler.keyups = {
         ' ': () => {
-            destroyAllEntities();
+            clearAll();
             spawnShip();
             nextLevel();
         },
@@ -92,6 +93,7 @@ const spawnShip = (): void => {
         ArrowUp: () => ship.idle(),
         ArrowLeft: () => ship.stopTurningLeft(),
         ArrowRight: () => ship.stopTurningRight(),
+        r: () => ship.destroy(),
     };
     app.keyboard.handler(shipKeyboardHandler);
 };
@@ -129,6 +131,7 @@ const onLoop = (): void => {
         postpone(nextLevel, 2000);
     }
     drawRemainingLives();
+    drawDiagnostics();
 };
 
 const postpone = (next: () => void, ms: number): void => {
@@ -144,12 +147,23 @@ const countRemaining = (InstanceCtor: Ctor<IEntity, any>): number => {
     return count;
 };
 
-const drawRemainingLives = () => {
+const drawRemainingLives = (): void => {
     for (let i = 0; i < LIVES; i++) {
         const pose = { x: 20 + 22 * i, y: 30, a: -Math.PI / 2 };
         const transform = transformShape(ship.copy(Shape), pose);
         app.viewport.drawShape({ shape: transform, rendering: { colour: 'white' } });
     }
+};
+
+const drawDiagnostics = (): void => {
+    let counter = 0;
+    app.engine.components.forEach(() => {
+        counter ++;
+    });
+    app.viewport.drawLabel({
+        pose: { x: 20, y: 100, a: 0 },
+        label: { text: `${counter}`, offset: { x: 0, y: 0}, fontSize: 20 },
+    });
 };
 
 setup();

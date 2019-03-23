@@ -25,11 +25,6 @@ export class Ship extends Entity {
 
     public accelerate(): void {
         this.mutate(Thruster)({ state: 'ACCELERATE' });
-        this.add(Flair)({
-            offset: { x: -10 },
-            length: 60,
-            width: 10,
-        });
     }
 
     public idle(): void {
@@ -38,7 +33,6 @@ export class Ship extends Entity {
         acceleration.y = 0;
         this.mutate(Acceleration)(acceleration);
         this.mutate(Thruster)({ state: 'IDLE' });
-        this.remove(Flair);
     }
 
     public turnLeft(): void {

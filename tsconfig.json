@@ -12,7 +12,7 @@
         "noImplicitAny": true,
         "strictNullChecks": true,
         "moduleResolution": "node",
-        "noUnusedLocals": true,
+        "noUnusedLocals": false,
         "types": [
             "jest",
             "jquery",
