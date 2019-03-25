@@ -23,52 +23,6 @@ export class Ship extends Entity {
         this.add(RenderingProfile)({ colour: 'white' });
     }
 
-    public accelerate(): void {
-        this.mutate(Thruster)({ state: 'ACCELERATE' });
-    }
-
-    public idle(): void {
-        const acceleration = this.copy(Acceleration);
-        acceleration.x = 0;
-        acceleration.y = 0;
-        this.mutate(Acceleration)(acceleration);
-        this.mutate(Thruster)({ state: 'IDLE' });
-    }
-
-    public turnLeft(): void {
-        const velocity = this.copy(Velocity);
-        velocity.w = -Math.PI / 512;
-        this.mutate(Velocity)(velocity);
-    }
-
-    public stopTurningLeft(): void {
-        const velocity = this.copy(Velocity);
-        if (velocity.w < 0 ) {
-            velocity.w = 0;
-            this.mutate(Velocity)(velocity);
-        }
-    }
-
-    public turnRight(): void {
-        const velocity = this.copy(Velocity);
-        velocity.w = Math.PI / 512;
-        this.mutate(Velocity)(velocity);
-    }
-
-    public stopTurningRight(): void {
-        const velocity = this.copy(Velocity);
-        if (velocity.w > 0 ) {
-            velocity.w = 0;
-            this.mutate(Velocity)(velocity);
-        }
-    }
-
-    public shoot(): void {
-        const missileLauncher = this.copy(MissileLauncher);
-        missileLauncher.state = 'FIRE';
-        this.mutate(MissileLauncher)(missileLauncher);
-    }
-
     public destroy(): void {
         super.destroy();
         this.$.entities.create(ExplosionArea, { pose: this.copy(Pose), radius: 200 });

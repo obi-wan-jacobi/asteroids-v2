@@ -6,6 +6,7 @@ import HTML5CanvasMouseAdaptor from '../html5-canvas/HTML5CanvasMouseAdaptor';
 import { HTML5CanvasViewportAdaptor } from '../html5-canvas/HTML5CanvasViewportAdaptor';
 import IEntity from '../engine/interfaces/IEntity';
 import KeyboardHandler from '../engine/KeyboardHandler';
+import ShipController from './ShipController';
 import { IPose, Label, Pose, Shape } from './components';
 import { Asteroid, Ship } from './entities';
 import { getEuclideanDistanceBetweenPoints, transformShape } from './geometry';
@@ -82,18 +83,18 @@ const spawnShip = (): void => {
     app.onLoop(onLoop);
     LIVES--;
     ship = app.engine.entities.create(Ship, { pose: { x: 640, y: 340, a: -Math.PI / 2 } });
+    const shipController = new ShipController(ship);
     const shipKeyboardHandler = new KeyboardHandler();
     shipKeyboardHandler.keydowns = {
-        ArrowUp: () => ship.accelerate(),
-        ArrowLeft: () => ship.turnLeft(),
-        ArrowRight: () => ship.turnRight(),
-        ' ': () => ship.shoot(),
+        ArrowUp: () => shipController.accelerate(),
+        ArrowLeft: () => shipController.turnLeft(),
+        ArrowRight: () => shipController.turnRight(),
+        ' ': () => shipController.shoot(),
     };
     shipKeyboardHandler.keyups = {
-        ArrowUp: () => ship.idle(),
-        ArrowLeft: () => ship.stopTurningLeft(),
-        ArrowRight: () => ship.stopTurningRight(),
-        r: () => ship.destroy(),
+        ArrowUp: () => shipController.idle(),
+        ArrowLeft: () => shipController.stopTurningLeft(),
+        ArrowRight: () => shipController.stopTurningRight(),
     };
     app.keyboard.handler(shipKeyboardHandler);
 };
@@ -131,7 +132,6 @@ const onLoop = (): void => {
         postpone(nextLevel, 2000);
     }
     drawRemainingLives();
-    drawDiagnostics();
 };
 
 const postpone = (next: () => void, ms: number): void => {
@@ -153,17 +153,6 @@ const drawRemainingLives = (): void => {
         const transform = transformShape(ship.copy(Shape), pose);
         app.viewport.drawShape({ shape: transform, rendering: { colour: 'white' } });
     }
-};
-
-const drawDiagnostics = (): void => {
-    let counter = 0;
-    app.engine.components.forEach(() => {
-        counter ++;
-    });
-    app.viewport.drawLabel({
-        pose: { x: 20, y: 100, a: 0 },
-        label: { text: `${counter}`, offset: { x: 0, y: 0}, fontSize: 20 },
-    });
 };
 
 setup();

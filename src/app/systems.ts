@@ -2,12 +2,12 @@ import IEntity from '../engine/interfaces/IEntity';
 import { System } from '../engine/abstracts/System';
 import {
     Acceleration, BooleanAsteroidSubtractor, Ephemeral, Flair,
-    Hull, IPoint, IShape, Label, MissileLauncher, Pose, RenderingProfile, Shape, Thruster, Velocity,
+    Hull, IShape, Label, MissileLauncher, Pose, RenderingProfile, Shape, Thruster, Velocity,
 } from './components';
 import { Asteroid, Missile, ThrustStream } from './entities';
+import { Feature, GeoJsonProperties, Polygon } from 'geojson';
 import {
-    fromGeoJSONCoordinatesToShapes, fromShapeToGeoJSON,
-    getEuclideanDistanceBetweenPoints, getMinMaxShapeBounds, transformShape,
+    fromGeoJSONCoordinatesToShapes, fromShapeToBoundary, fromShapeToGeoJSON, transformShape,
 } from './geometry';
 import turf from 'turf';
 const booleanOverlap = require('@turf/boolean-overlap').default;
@@ -84,86 +84,63 @@ export class BooleanAsteroidSubtractorSystem extends System {
 }
 
 const diffAsteroid = (explosionShape: IShape, asteroid: Asteroid): void => {
-    const explosionGeoJSON = fromShapeToGeoJSON(explosionShape);
-    const asteroidGeoJSON = fromShapeToGeoJSON(
-        transformShape(asteroid.copy(Shape), asteroid.copy(Pose)),
-    );
-    let remainders: IShape[] = [];
     try {
-        remainders = fromGeoJSONCoordinatesToShapes(turf.difference(asteroidGeoJSON, explosionGeoJSON));
-    } catch {
-        remainders = [];
-    }
-    if (remainders.length === 0) {
-        asteroid.destroy();
-        return;
-    }
-    remainders.forEach(collapseExtraneousVertices);
-    transformAsteroidFragment(asteroid, remainders.shift()!);
-    remainders.forEach((remainder) => {
-        const fragment = asteroid.$.entities.create(Asteroid, {
-            pose: { x: 0, y: 0, a: 0 },
-            innerRadius: 0,
-            outerRadius: 0,
-            numberOfVertices: 0,
-        });
-        transformAsteroidFragment(fragment, remainder);
-    });
-};
-
-const collapseExtraneousVertices = (shape: IShape) => {
-    let collapsed: IPoint[] = [];
-    while (shape.points.length) {
-        const line = collapseContiguousArc(shape.points);
-        collapsed = collapsed.concat(line);
-    }
-    shape.points = collapsed;
-};
-
-const collapseContiguousArc = (target: IPoint[]): IPoint[] => {
-    if (target.length === 0) {
-        return [];
-    }
-    const epsilon = 10;
-    let point = target.shift()!;
-    let arc = [point];
-    while (target.length > 1) {
-        if (epsilon > getEuclideanDistanceBetweenPoints(point, target[0])
-            && epsilon > getEuclideanDistanceBetweenPoints(target[0], target[1])
-        ) {
-            arc.push(target.shift()!);
-            point = target.shift()!;
-            arc.push(point);
-        } else {
-            break;
+        const explosionGeoJSON = fromShapeToGeoJSON(explosionShape);
+        const asteroidGeoJSON = fromShapeToGeoJSON(
+            transformShape(asteroid.copy(Shape), asteroid.copy(Pose)),
+        );
+        let remainders: IShape[] = [];
+        const diff = turf.difference(asteroidGeoJSON, explosionGeoJSON);
+        if (!diff) {
+            asteroid.destroy();
+            return;
         }
+        const simple = turf.simplify(diff, 2, true) as Feature<Polygon, GeoJsonProperties>;
+        if (simple) {
+            remainders = fromGeoJSONCoordinatesToShapes(simple);
+        } else {
+            asteroid.destroy();
+            return;
+        }
+        remainders = remainders.sort((shape1, shape2) => shape2.points.length - shape1.points.length);
+        transformAsteroidFragment(asteroid, remainders.shift()!);
+        remainders.forEach((remainder) => {
+            const fragment = asteroid.$.entities.create(Asteroid, {
+                pose: { x: 0, y: 0, a: 0 },
+                innerRadius: 0,
+                outerRadius: 0,
+                numberOfVertices: 0,
+            });
+            transformAsteroidFragment(fragment, remainder);
+        });
+    } catch (e) {
+        window.alert(e.message);
     }
-    if (arc.length >= 3) {
-        arc = [arc[0], arc[Math.floor(arc.length / 2)], arc[arc.length - 1]];
-    }
-    return arc;
 };
 
 const transformAsteroidFragment = (asteroid: Asteroid, remainder: IShape): void => {
-    if (remainder.points.length < 4) {
+    const { minX, maxX, minY, maxY } = fromShapeToBoundary(remainder);
+    const epsilon = 30;
+    if (remainder.points.length < 3 || (maxX - minX < epsilon && maxY - minY < epsilon)) {
         asteroid.destroy();
         return;
     }
-    const { x, y } = remainder.points.reduce((prev, cur) => ({ x: prev.x + cur.x, y: prev.y + cur.y }));
+    const { x, y } = remainder.points.reduce((prev, cur) => ({
+        x: prev.x + cur.x,
+        y: prev.y + cur.y,
+    }));
     const fragmentPose = {
         x: x / remainder.points.length,
         y: y / remainder.points.length,
         a: 0,
     };
     asteroid.mutate(Shape)({
-        points: remainder.points.map((point) => ({ x: point.x - fragmentPose.x, y: point.y - fragmentPose.y })),
+        points: remainder.points.map((point) => ({
+            x: point.x - fragmentPose.x,
+            y: point.y - fragmentPose.y,
+        })),
     });
     asteroid.mutate(Pose)(fragmentPose);
-    const { minX, maxX, minY, maxY } = getMinMaxShapeBounds(asteroid.copy(Shape));
-    const epsilon = 30;
-    if (maxX - minX < epsilon && maxY - minY < epsilon) {
-        asteroid.destroy();
-    }
 };
 
 export class EphemeralSystem extends System {
@@ -210,7 +187,9 @@ export class MissileLauncherSystem extends System {
                 entity.mutate(MissileLauncher)(launcher);
                 return;
             }
-            launcher.timer = launcher.timer < launcher.cooldown ? launcher.timer + this.$.delta : launcher.cooldown;
+            launcher.timer = launcher.timer < launcher.cooldown
+                ? launcher.timer + this.$.delta
+                : launcher.cooldown;
             entity.mutate(MissileLauncher)(launcher);
             return;
         });
@@ -325,7 +304,11 @@ export class FPSSystem extends System {
         }
         this.$.viewport.drawLabel({
             pose: { x: 0, y: 680, a: 0 },
-            label: { fontSize: 20, text: `${this.__printValue} : ${this.__nodeCount}`, offset: { x: 0, y: 0 } },
+            label: {
+                fontSize: 20,
+                text: `${this.__printValue} : ${this.__nodeCount}`,
+                offset: { x: 0, y: 0 },
+            },
         });
     }
 

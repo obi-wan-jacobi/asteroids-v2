@@ -8,11 +8,14 @@ export class Entity extends Unique implements IEntity {
 
     public $: IEngine;
 
-    private __data: { [key: string]: IComponent<any> } = {};
+    private __data: { [key: string]: IComponent<any> };
+    private __isDestroyed: boolean;
 
     constructor({ $ }: { $: IEngine }) {
         super();
         this.$ = $;
+        this.__data = {};
+        this.__isDestroyed = false;
     }
 
     public destroy(): void {
@@ -20,6 +23,11 @@ export class Entity extends Unique implements IEntity {
     }
 
     public add<T>(ComponentCtor: Ctor<IComponent<T>, T>): (data: T) => void {
+        if (this.__isDestroyed) {
+            throw new Error(
+                `Attempted to add ${ComponentCtor.name} to destroyed ${this.constructor.name}`,
+            );
+        }
         return (data: T) => {
             if (!this.__data[ComponentCtor.name]) {
                 this.__data[ComponentCtor.name] = new ComponentCtor(data);

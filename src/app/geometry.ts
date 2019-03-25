@@ -1,4 +1,4 @@
-import { IMinMaxBoundary2D, IPoint, IPose, IShape } from './components';
+import { IPoint, IPose, IShape } from './components';
 import { Feature, GeoJsonProperties, MultiPolygon, Polygon } from 'geojson';
 import turf from 'turf';
 
@@ -11,12 +11,6 @@ export const rotatePointAboutOrigin = ({ point, orientation }: {
         x: point.x * c - point.y * s,
         y: point.x * s + point.y * c,
     };
-};
-
-export const rotatePointsAboutOrigin = ({ points, orientation }: {
-    points: IPoint[], orientation: number,
-}): IPoint[] => {
-    return points.map((point) => rotatePointAboutOrigin({ point, orientation }));
 };
 
 export const transformShape = (shape: IShape, pose: IPose): IShape => {
@@ -32,28 +26,6 @@ export const translateShape = ({ shape, position }: { shape: IShape, position: I
         };
     });
     return { points };
-};
-
-export const getMinMaxShapeBounds = (shape: IShape): IMinMaxBoundary2D => {
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minY = Infinity;
-    let maxY = -Infinity;
-    shape.points.forEach((point) => {
-        if (point.x < minX) { minX = __settleFloatingPoint(point.x); }
-        if (point.x > maxX) { maxX = __settleFloatingPoint(point.x); }
-        if (point.y < minY) { minY = __settleFloatingPoint(point.y); }
-        if (point.y > maxY) { maxY = __settleFloatingPoint(point.y); }
-    });
-    return { minX, maxX, minY, maxY };
-};
-
-export const getMinMaxLineSegmentBounds = (segment: { head: IPoint, tail: IPoint }): IMinMaxBoundary2D => {
-    return getMinMaxShapeBounds({ points: [segment.tail, segment.head] });
-};
-
-export const getEuclideanDistanceBetweenPoints = (p1: IPoint, p2: IPoint): number => {
-    return Math.sqrt(Math.pow((p2.x - p1.x), 2) + Math.pow(p2.y - p1.y, 2));
 };
 
 export const fromShapeToGeoJSON = (shape: IShape): Feature<Polygon, GeoJsonProperties> => {
@@ -83,6 +55,18 @@ export const fromGeoJSONCoordinatesToShapes = (geoJSON: Feature<Polygon|MultiPol
     return [];
 };
 
-const __settleFloatingPoint = (value: number): number => {
-    return (value * 1000) / 1000;
+export interface IBoundary { minX: number; maxX: number; minY: number; maxY: number; }
+export const fromShapeToBoundary = (shape: IShape): IBoundary => {
+    const geojson = fromShapeToGeoJSON(shape);
+    const bbox = turf.bbox(geojson);
+    return {
+        minX: bbox[0],
+        minY: bbox[1],
+        maxX: bbox[2],
+        maxY: bbox[3],
+    };
+};
+
+export const getEuclideanDistanceBetweenPoints = (p1: IPoint, p2: IPoint): number => {
+    return Math.sqrt(Math.pow((p2.x - p1.x), 2) + Math.pow(p2.y - p1.y, 2));
 };
