@@ -26,34 +26,16 @@ export default class GameController {
         this.__lives = 3;
         this.__app.onLoop(DO_NOTHING);
         this.clearAll();
-        this.createStartBlurb();
-        this.registerSetupKeyboardHandler();
+        this.__createStartBlurb();
+        this.__registerSetupKeyboardHandler();
     }
 
     public clearAll(): void {
         this.__app.engine.entities.forEach((entity) => entity.destroy());
     }
 
-    public createStartBlurb(): void {
-        const startBlurb = this.__app.engine.entities.create(Entity);
-        startBlurb.add(Pose)({ x: 1280 / 2, y: 680 / 2, a: 0 });
-        startBlurb.add(Label)({ text: 'Press SPACE to begin...', fontSize: 40, offset: { x: -200, y: 0 } });
-    }
-
-    public registerSetupKeyboardHandler(): void {
-        const setupKeyboardHandler = new KeyboardHandler();
-        setupKeyboardHandler.keyups = {
-            ' ': () => {
-                this.clearAll();
-                this.spawnShip();
-                this.nextLevel();
-            },
-        };
-        this.__app.keyboard.handler(setupKeyboardHandler);
-    }
-
-    public spawnShip(): void {
-        this.__app.onLoop(this.onLoop.bind(this));
+    private __spawnShip(): void {
+        this.__app.onLoop(this.__onLoop.bind(this));
         this.__lives--;
         this.__ship = this.__app.engine.entities.create(Ship, { pose: { x: 640, y: 340, a: -Math.PI / 2 } });
         const shipController = new ShipController(this.__ship);
@@ -72,18 +54,31 @@ export default class GameController {
         this.__app.keyboard.handler(shipKeyboardHandler);
     }
 
-    public nextLevel(): void {
-        this.__app.onLoop(this.onLoop.bind(this));
+    private __spawnShipAtCentreWhenSafe(): void {
+        let isItSafeToSpawnShip = true;
+        this.__app.engine.entities.forEvery(Asteroid)((asteroid) => {
+            if (getEuclideanDistanceBetweenPoints({ x: 640, y: 340 }, asteroid.copy(Pose)) < 250) {
+                isItSafeToSpawnShip = false;
+            }
+        });
+        if (isItSafeToSpawnShip) {
+            return this.__spawnShip();
+        }
+        this.__postpone(this.__spawnShipAtCentreWhenSafe, 500);
+    }
+
+    private __nextLevel(): void {
+        this.__app.onLoop(this.__onLoop.bind(this));
         this.__level++;
         for (let i = 0, L = this.__level + 2; i < L; i++) {
-            this.spawnAsteroidAwayFromShip();
+            this.__spawnAsteroidAwayFromShip();
         }
     }
 
-    public spawnAsteroidAwayFromShip(): void {
-        let pose = this.generateAsteroidPose(1080, 640);
+    private __spawnAsteroidAwayFromShip(): void {
+        let pose = this.__generateAsteroidPose(1080, 640);
         while (getEuclideanDistanceBetweenPoints(this.__ship.copy(Pose), pose) < 250) {
-            pose = this.generateAsteroidPose(1080, 640);
+            pose = this.__generateAsteroidPose(1080, 640);
         }
         this.__app.engine.entities.create(Asteroid, {
             pose,
@@ -93,26 +88,44 @@ export default class GameController {
         });
     }
 
-    public generateAsteroidPose(width: number, height: number): IPose {
+    private __generateAsteroidPose(width: number, height: number): IPose {
         return { x: width * Math.random(), y: height * Math.random(), a: 0 };
     }
 
-    public onLoop(): void {
-        if (this.countRemaining(Ship) === 0) {
-            return this.postpone((this.__lives <= 0) ? this.setup : this.spawnShip, 2000);
+    private __onLoop(): void {
+        if (this.__countRemaining(Ship) === 0) {
+            return this.__postpone((this.__lives <= 0) ? this.setup : this.__spawnShipAtCentreWhenSafe, 2000);
         }
-        if (this.countRemaining(Asteroid) === 0) {
-            this.postpone(this.nextLevel, 2000);
+        if (this.__countRemaining(Asteroid) === 0) {
+            this.__postpone(this.__nextLevel, 2000);
         }
-        this.drawRemainingLives();
+        this.__drawRemainingLives();
     }
 
-    public postpone(next: () => void, ms: number): void {
+    private __postpone(next: () => void, ms: number): void {
         this.__app.onLoop(DO_NOTHING);
         setTimeout(next.bind(this), ms);
     }
 
-    public countRemaining(InstanceCtor: Ctor<IEntity, any>): number {
+    private __createStartBlurb(): void {
+        const startBlurb = this.__app.engine.entities.create(Entity);
+        startBlurb.add(Pose)({ x: 1280 / 2, y: 680 / 2, a: 0 });
+        startBlurb.add(Label)({ text: 'Press SPACE to begin...', fontSize: 40, offset: { x: -200, y: 0 } });
+    }
+
+    private __registerSetupKeyboardHandler(): void {
+        const setupKeyboardHandler = new KeyboardHandler();
+        setupKeyboardHandler.keyups = {
+            ' ': () => {
+                this.clearAll();
+                this.__spawnShipAtCentreWhenSafe();
+                this.__nextLevel();
+            },
+        };
+        this.__app.keyboard.handler(setupKeyboardHandler);
+    }
+
+    private __countRemaining(InstanceCtor: Ctor<IEntity, any>): number {
         let count = 0;
         this.__app.engine.entities.forEvery(InstanceCtor)((asteroid) => {
             count++;
@@ -120,7 +133,7 @@ export default class GameController {
         return count;
     }
 
-    public drawRemainingLives(): void {
+    private __drawRemainingLives(): void {
         for (let i = 0; i < this.__lives; i++) {
             const pose = { x: 20 + 22 * i, y: 30, a: -Math.PI / 2 };
             const transform = transformShape(this.__ship.copy(Shape), pose);
