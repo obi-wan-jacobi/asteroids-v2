@@ -1,3 +1,4 @@
+import unkinkPolygon from '@turf/unkink-polygon';
 import IEntity from '../engine/interfaces/IEntity';
 import { System } from '../engine/abstracts/System';
 import {
@@ -5,13 +6,14 @@ import {
     Hull, IShape, Label, MissileLauncher, Pose, RenderingProfile, Shape, Thruster, Velocity,
 } from './components';
 import { Asteroid, Missile, ThrustStream } from './entities';
-import { Feature, GeoJsonProperties, Polygon } from 'geojson';
+import { Feature, FeatureCollection, GeoJsonProperties, Polygon } from 'geojson';
 import {
     fromGeoJSONCoordinatesToShapes, fromShapeToBoundary, fromShapeToGeoJSON, transformShape,
 } from './geometry';
 import turf from 'turf';
 const booleanOverlap = require('@turf/boolean-overlap').default;
 const booleanContains = require('@turf/boolean-contains').default;
+const centerOfMass = require('@turf/center-of-mass').default;
 
 export class ThrustSystem extends System {
 
@@ -54,8 +56,7 @@ export class HullSystem extends System {
                 const hullGeoJSON = fromShapeToGeoJSON(hullShape);
                 const asteroidGeoJSON = fromShapeToGeoJSON(asteroidShape);
                 if (booleanOverlap(hullGeoJSON, asteroidGeoJSON)) {
-                    entity.destroy();
-                    return;
+                    return entity.destroy();
                 }
             });
         });
@@ -74,8 +75,7 @@ export class BooleanAsteroidSubtractorSystem extends System {
                 const asteroidGeoJSON = fromShapeToGeoJSON(asteroidShape);
                 if (booleanOverlap(subtractorGeoJSON, asteroidGeoJSON)
                 || booleanContains(subtractorGeoJSON, asteroidGeoJSON)) {
-                    diffAsteroid(subtractorShape, asteroid);
-                    return;
+                    return diffAsteroid(subtractorShape, asteroid);
                 }
             });
         });
@@ -84,63 +84,57 @@ export class BooleanAsteroidSubtractorSystem extends System {
 }
 
 const diffAsteroid = (explosionShape: IShape, asteroid: Asteroid): void => {
-    try {
-        const explosionGeoJSON = fromShapeToGeoJSON(explosionShape);
-        const asteroidGeoJSON = fromShapeToGeoJSON(
-            transformShape(asteroid.copy(Shape), asteroid.copy(Pose)),
-        );
-        let remainders: IShape[] = [];
-        const diff = turf.difference(asteroidGeoJSON, explosionGeoJSON);
-        if (!diff) {
-            asteroid.destroy();
-            return;
-        }
-        const simple = turf.simplify(diff, 2, true) as Feature<Polygon, GeoJsonProperties>;
-        if (simple) {
-            remainders = fromGeoJSONCoordinatesToShapes(simple);
-        } else {
-            asteroid.destroy();
-            return;
-        }
-        remainders = remainders.sort((shape1, shape2) => shape2.points.length - shape1.points.length);
-        transformAsteroidFragment(asteroid, remainders.shift()!);
-        remainders.forEach((remainder) => {
-            const fragment = asteroid.$.entities.create(Asteroid, {
-                pose: { x: 0, y: 0, a: 0 },
-                innerRadius: 0,
-                outerRadius: 0,
-                numberOfVertices: 0,
-            });
-            transformAsteroidFragment(fragment, remainder);
-        });
-    } catch (e) {
-        window.alert(e.message);
+    const explosionGeoJSON = fromShapeToGeoJSON(explosionShape);
+    const asteroidGeoJSON = fromShapeToGeoJSON(
+        transformShape(asteroid.copy(Shape), asteroid.copy(Pose)),
+    );
+    const diff = turf.difference(asteroidGeoJSON, explosionGeoJSON);
+    if (!diff) {
+        return asteroid.destroy();
     }
+    const simple = turf.simplify(diff, 2, true) as Feature<Polygon, GeoJsonProperties>;
+    if (!simple) {
+        return asteroid.destroy();
+    }
+    let geojsons = [simple];
+    if (turf.kinks(simple).features.length) {
+        geojsons = (unkinkPolygon(simple) as FeatureCollection).features as
+            Array<Feature<Polygon, GeoJsonProperties>>;
+    }
+    const remainders = geojsons
+        .map(fromGeoJSONCoordinatesToShapes)
+        .reduce((shapes1, shapes2) => shapes1.concat(shapes2))
+        .sort((shape1, shape2) => {
+            return turf.area(fromShapeToGeoJSON(shape2)) - turf.area(fromShapeToGeoJSON(shape1));
+        });
+    transformAsteroidFragment(asteroid, remainders.shift()!);
+    remainders.forEach((remainder) => {
+        const fragment = asteroid.$.entities.create(Asteroid, {
+            pose: { x: 0, y: 0, a: 0 },
+            innerRadius: 0,
+            outerRadius: 0,
+            numberOfVertices: 0,
+        });
+        transformAsteroidFragment(fragment, remainder);
+    });
 };
 
 const transformAsteroidFragment = (asteroid: Asteroid, remainder: IShape): void => {
     const { minX, maxX, minY, maxY } = fromShapeToBoundary(remainder);
     const epsilon = 30;
     if (remainder.points.length < 3 || (maxX - minX < epsilon && maxY - minY < epsilon)) {
-        asteroid.destroy();
-        return;
+        return asteroid.destroy();
     }
-    const { x, y } = remainder.points.reduce((prev, cur) => ({
-        x: prev.x + cur.x,
-        y: prev.y + cur.y,
-    }));
-    const fragmentPose = {
-        x: x / remainder.points.length,
-        y: y / remainder.points.length,
-        a: 0,
-    };
+    const geojson = fromShapeToGeoJSON(remainder);
+    const result = centerOfMass(geojson);
+    const [x, y] = result.geometry.coordinates;
     asteroid.mutate(Shape)({
         points: remainder.points.map((point) => ({
-            x: point.x - fragmentPose.x,
-            y: point.y - fragmentPose.y,
+            x: point.x - x,
+            y: point.y - y,
         })),
     });
-    asteroid.mutate(Pose)(fragmentPose);
+    asteroid.mutate(Pose)({ x, y, a: 0 });
 };
 
 export class EphemeralSystem extends System {
@@ -184,14 +178,12 @@ export class MissileLauncherSystem extends System {
                 this.$.entities.create(Missile, { pose: entity.copy(Pose) });
                 launcher.state = 'IDLE';
                 launcher.timer = 0;
-                entity.mutate(MissileLauncher)(launcher);
-                return;
+                return entity.mutate(MissileLauncher)(launcher);
             }
             launcher.timer = launcher.timer < launcher.cooldown
                 ? launcher.timer + this.$.delta
                 : launcher.cooldown;
-            entity.mutate(MissileLauncher)(launcher);
-            return;
+            return entity.mutate(MissileLauncher)(launcher);
         });
     }
 
