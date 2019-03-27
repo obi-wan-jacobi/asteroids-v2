@@ -1,9 +1,12 @@
 import App from './App';
 import Engine from '../engine/Engine';
+import { Entity } from '../engine/Entity';
 import GameController from './GameController';
 import HTML5CanvasKeyboardAdapter from '../html5-canvas/HTML5CanvasKeyboardAdaptor';
 import HTML5CanvasMouseAdaptor from '../html5-canvas/HTML5CanvasMouseAdaptor';
 import { HTML5CanvasViewportAdaptor } from '../html5-canvas/HTML5CanvasViewportAdaptor';
+import { Pose, Shape } from './components';
+import { transformShape } from './geometry';
 import $ from 'jquery';
 import {
     AccelerationSystem, BooleanAsteroidSubtractorSystem,

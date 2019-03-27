@@ -7,15 +7,15 @@ import { Ctor } from '../framework/types';
 export class Entity extends Unique implements IEntity {
 
     public $: IEngine;
+    public isDestroyed: boolean;
 
     private __data: { [key: string]: IComponent<any> };
-    private __isDestroyed: boolean;
 
     constructor({ $ }: { $: IEngine }) {
         super();
         this.$ = $;
         this.__data = {};
-        this.__isDestroyed = false;
+        this.isDestroyed = false;
     }
 
     public destroy(): void {
@@ -23,7 +23,7 @@ export class Entity extends Unique implements IEntity {
     }
 
     public add<T>(ComponentCtor: Ctor<IComponent<T>, T>): (data: T) => void {
-        if (this.__isDestroyed) {
+        if (this.isDestroyed) {
             throw new Error(
                 `Attempted to add ${ComponentCtor.name} to destroyed ${this.constructor.name}`,
             );

@@ -42,6 +42,46 @@ export class Ship extends Entity {
 
 }
 
+export class AlienShip extends Entity {
+
+    constructor({ pose }: { pose: IPose }) {
+        super(arguments[0]);
+        this.add(Shape)({ points: [
+            { x: 40, y: 0 },
+            { x: 25, y: -5 },
+            { x: 10, y: -20 },
+            { x: -10, y: -20 },
+            { x: -25, y: -5 },
+            { x: -40, y: 0 },
+            { x: 0, y: 10 },
+        ]});
+        this.add(Pose)(pose);
+        this.add(Velocity)({ x: 0, y: 0, w: 0 });
+        this.add(Hull)({});
+        this.add(MissileLauncher)({ state: 'IDLE', cooldown: 200, timer: 200 });
+        this.add(RenderingProfile)({ colour: 'white' });
+        this.add(Ephemeral)({ remaining: 10000 });
+    }
+
+    public destroy(): void {
+        super.destroy();
+        this.$.entities.create(ExplosionArea, { pose: this.copy(Pose), radius: 200 });
+        this.$.entities.create(ExplosionVisual, {
+            pose: this.copy(Pose),
+            radius: 200,
+            spin: -Math.PI / 1024,
+            colour: 'yellow',
+        });
+        this.$.entities.create(ExplosionVisual, {
+            pose: this.copy(Pose),
+            radius: 198,
+            spin: Math.PI / 1024,
+            colour: 'red',
+        });
+    }
+
+}
+
 export class Missile extends Entity {
 
     constructor( { pose }: { pose: IPose }) {

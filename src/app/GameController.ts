@@ -1,10 +1,11 @@
+import AlienShipController from './AlienShipController';
 import App from './App';
 import { Entity } from '../engine/Entity';
 import IEntity from '../engine/interfaces/IEntity';
 import KeyboardHandler from '../engine/KeyboardHandler';
 import ShipController from './ShipController';
 import { IPose, Label, Pose, Shape } from './components';
-import { Asteroid, Ship } from './entities';
+import { AlienShip, Asteroid, Ship } from './entities';
 import { getEuclideanDistanceBetweenPoints, transformShape } from './geometry';
 import { Ctor } from '../framework/types';
 
@@ -73,6 +74,7 @@ export default class GameController {
         for (let i = 0, L = this.__level + 2; i < L; i++) {
             this.__spawnAsteroidAwayFromShip();
         }
+        // this.__spawnAlienShipAtRandomEdge();
     }
 
     private __spawnAsteroidAwayFromShip(): void {
@@ -90,6 +92,11 @@ export default class GameController {
 
     private __generateAsteroidPose(width: number, height: number): IPose {
         return { x: width * Math.random(), y: height * Math.random(), a: 0 };
+    }
+
+    private __spawnAlienShipAtRandomEdge(): void {
+        const alien = this.__app.engine.entities.create(AlienShip, { pose: { x: 1, y: 340, a: 0 } });
+        new AlienShipController(alien).engage();
     }
 
     private __onLoop(): void {
