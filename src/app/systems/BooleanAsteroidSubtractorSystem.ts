@@ -52,9 +52,9 @@ const diffAsteroid = (subtractorShape: IShape, asteroid: Asteroid): void => {
     Polygon,
     GeoJsonProperties
   >;
-  if (!simple) {
-    return asteroid.$destroy();
-  }
+  // if (!simple) {
+  //   return asteroid.$destroy();
+  // }
   let geojsons = [simple];
   if (kinks(simple).features.length) {
     geojsons = (unkinkPolygon(simple) as FeatureCollection).features as Array<Feature<Polygon, GeoJsonProperties>>;

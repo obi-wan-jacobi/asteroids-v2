@@ -29,7 +29,6 @@ export default class GameController implements IController {
     this.__nextLevel();
     app.controllers.input.setHandler(ShipInputHandler);
     this.__isStarted = true;
-    this.__isWaitingBeforeNextLevel = false;
   }
 
   public once(): void {
@@ -73,6 +72,7 @@ export default class GameController implements IController {
     for (let i = 0, L = this.__level + 2; i < L; i++) {
       this.__spawnAsteroidAwayFromShip();
     }
+    this.__isWaitingBeforeNextLevel = false;
   }
 
   private __spawnAsteroidAwayFromShip(): void {
