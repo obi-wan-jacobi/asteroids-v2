@@ -3,8 +3,9 @@ import { IViewport, RenderingSystem } from '@plasmastrapi/engine';
 import { PoseComponent, transformShape } from '@plasmastrapi/geometry';
 import { AccelerationComponent } from '@plasmastrapi/physics';
 import { COLOUR } from '@plasmastrapi/presentation';
-import { THRUSTER_STATE, ThrusterComponent } from 'app/components';
-import { ThrustStream } from 'app/entities';
+import ThrusterComponent from 'app/components/ThrusterComponent';
+import ThrustStream from 'app/entities/ThrustStream';
+import { THRUSTER_STATE } from 'app/enums/THRUSTER_STATE';
 
 export default class ThrusterSystem extends RenderingSystem {
   public once({ components }: { components: IComponentMaster }): void {

@@ -1,6 +1,9 @@
 import { AccelerationComponent, VelocityComponent } from '@plasmastrapi/physics';
-import { MISSILE_LAUNCHER_STATE, MissileLauncherComponent, THRUSTER_STATE, ThrusterComponent } from 'app/components';
-import { Ship } from 'app/entities';
+import MissileLauncherComponent from 'app/components/MissileLauncherComponent';
+import ThrusterComponent from 'app/components/ThrusterComponent';
+import Ship from 'app/entities/Ship';
+import { MISSILE_LAUNCHER_STATE } from 'app/enums/MISSILE_LAUNCHER_STATE';
+import { THRUSTER_STATE } from 'app/enums/THRUSTER_STATE';
 import IController from 'app/interfaces/IController';
 import { app } from 'app/main';
 

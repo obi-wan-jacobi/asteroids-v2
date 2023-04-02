@@ -1,5 +1,5 @@
 import { IComponentMaster, System } from '@plasmastrapi/ecs';
-import { EphemeralComponent } from 'app/components';
+import EphemeralComponent from 'app/components/EphemeralComponent';
 
 export default class EphemeralSystem extends System {
   public once({ components, delta }: { components: IComponentMaster; delta: number }): void {

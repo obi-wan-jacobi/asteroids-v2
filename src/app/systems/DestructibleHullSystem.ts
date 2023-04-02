@@ -1,12 +1,12 @@
 import { IComponentMaster, IEntityMaster, System } from '@plasmastrapi/ecs';
 import { PoseComponent, ShapeComponent, fromShapeToGeoJSON, transformShape } from '@plasmastrapi/geometry';
 import booleanOverlap from '@turf/boolean-overlap';
-import { HullComponent } from 'app/components';
-import { Asteroid } from 'app/entities';
+import DestructibleHullComponent from 'app/components/DestructibleHullComponent';
+import Asteroid from 'app/entities/Asteroid';
 
-export default class HullSystem extends System {
+export default class DestructibleHullSystem extends System {
   public once({ entities, components }: { entities: IEntityMaster; components: IComponentMaster }): void {
-    components.forEvery(HullComponent)((hull) => {
+    components.forEvery(DestructibleHullComponent)((hull) => {
       entities.forEvery(Asteroid)((asteroid) => {
         const hullShape = transformShape(hull.$entity.$copy(ShapeComponent)!, hull.$entity.$copy(PoseComponent)!);
         const asteroidShape = transformShape(asteroid.$copy(ShapeComponent)!, asteroid.$copy(PoseComponent)!);

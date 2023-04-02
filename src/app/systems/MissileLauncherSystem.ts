@@ -1,7 +1,8 @@
 import { IComponentMaster, System } from '@plasmastrapi/ecs';
 import { PoseComponent } from '@plasmastrapi/geometry';
-import { MISSILE_LAUNCHER_STATE, MissileLauncherComponent } from 'app/components';
-import { Missile } from 'app/entities';
+import MissileLauncherComponent from 'app/components/MissileLauncherComponent';
+import Missile from 'app/entities/Missile';
+import { MISSILE_LAUNCHER_STATE } from 'app/enums/MISSILE_LAUNCHER_STATE';
 
 export default class MissileLauncherSystem extends System {
   public once({ components, delta }: { components: IComponentMaster; delta: number }): void {

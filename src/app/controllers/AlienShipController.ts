@@ -1,6 +1,7 @@
 import { VelocityComponent } from '@plasmastrapi/physics';
-import { MISSILE_LAUNCHER_STATE, MissileLauncherComponent } from '../components';
-import { AlienShip } from '../entities';
+import MissileLauncherComponent from 'app/components/MissileLauncherComponent';
+import AlienShip from 'app/entities/AlienShip';
+import { MISSILE_LAUNCHER_STATE } from 'app/enums/MISSILE_LAUNCHER_STATE';
 
 export default class AlienShipController extends AlienShip {
   public engage(): void {

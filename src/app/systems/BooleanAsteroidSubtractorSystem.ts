@@ -1,6 +1,4 @@
 import unkinkPolygon from '@turf/unkink-polygon';
-import { BooleanAsteroidSubtractorComponent } from '../components';
-import { Asteroid } from '../entities';
 import { Feature, FeatureCollection, GeoJsonProperties, Polygon } from 'geojson';
 import difference from '@turf/difference';
 import simplify from '@turf/simplify';
@@ -16,6 +14,8 @@ import {
   ShapeComponent,
   transformShape,
 } from '@plasmastrapi/geometry';
+import Asteroid from 'app/entities/Asteroid';
+import BooleanAsteroidSubtractorComponent from 'app/components/BooleanAsteroidSubtractorComponent';
 const booleanOverlap = require('@turf/boolean-overlap').default;
 const booleanContains = require('@turf/boolean-contains').default;
 const centerOfMass = require('@turf/center-of-mass').default;

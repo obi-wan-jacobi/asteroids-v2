@@ -6,7 +6,7 @@ import ShipController from './controllers/ShipController';
 import { AnimationSystem, ImageSystem, LabelSystem, LineSystem, PoseSystem, ShapeSystem } from '@plasmastrapi/engine';
 import { AccelerationSystem, VelocitySystem } from '@plasmastrapi/physics';
 import HUDController from './controllers/HUDController';
-import HullSystem from './systems/HullSystem';
+import DestructibleHullSystem from './systems/DestructibleHullSystem';
 import { FPSSystem } from '@plasmastrapi/diagnostics';
 import ThrusterSystem from './systems/ThrusterSystem';
 import MissileLauncherSystem from './systems/MissileLauncherSystem';
@@ -39,9 +39,9 @@ export const app = new App({
 
     PositionalBoundarySystem,
     ThrusterSystem,
-    HullSystem,
-    BooleanAsteroidSubtractorSystem,
+    DestructibleHullSystem,
     MissileLauncherSystem,
+    BooleanAsteroidSubtractorSystem,
     EphemeralSystem,
   ],
 });
