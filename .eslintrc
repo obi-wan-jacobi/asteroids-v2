@@ -1,0 +1,131 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "plugins": ["@typescript-eslint"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "rules": {
+    "arrow-parens": "error",
+    "comma-dangle": ["error", "always-multiline"],
+    "comma-style": ["error", "last"],
+    "key-spacing": [
+      "error",
+      {
+        "singleLine": {
+          "beforeColon": false,
+          "afterColon": true
+        }
+      }
+    ],
+    "no-duplicate-imports": ["error", { "includeExports": true }],
+    "no-empty-interface": "off",
+    "no-empty-pattern": "off",
+    "no-magic-numbers": "off",
+    "no-trailing-spaces": "error",
+    "semi": ["off"],
+    "space-before-blocks": "error",
+    "space-before-function-paren": [
+      "error",
+      {
+        "anonymous": "always",
+        "named": "never",
+        "asyncArrow": "always"
+      }
+    ],
+    "prefer-rest-params": "off",
+    "@typescript-eslint/semi": "error",
+    "@typescript-eslint/ban-types": "off",
+    "@typescript-eslint/member-delimiter-style": [
+      "error",
+      {
+        "multiline": {
+          "delimiter": "semi",
+          "requireLast": true
+        },
+        "singleline": {
+          "delimiter": "semi",
+          "requireLast": false
+        }
+      }
+    ],
+    "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/no-empty-pattern": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/no-var-requires": "off",
+    "@typescript-eslint/naming-convention": [
+      "error",
+      {
+        "selector": "enum",
+        "format": ["UPPER_CASE"]
+      },
+      {
+        "selector": "enumMember",
+        "format": ["UPPER_CASE"]
+      },
+      {
+        "selector": "variable",
+        "types": ["boolean"],
+        "format": ["PascalCase"],
+        "prefix": ["is"]
+      },
+      {
+        "selector": "variable",
+        "format": ["camelCase", "UPPER_CASE"]
+      },
+      {
+        "selector": "parameter",
+        "format": ["camelCase", "PascalCase"]
+      },
+      {
+        "selector": "typeParameter",
+        "format": ["PascalCase"],
+        "prefix": ["T"]
+      },
+      {
+        "selector": "interface",
+        "format": ["PascalCase"],
+        "prefix": ["I"]
+      },
+      {
+        "selector": "typeLike",
+        "format": ["PascalCase"]
+      },
+      /*** MEMBERS ***/
+      {
+        "selector": "memberLike",
+        "modifiers": ["public"],
+        "format": ["camelCase", "PascalCase"]
+      },
+      {
+        "selector": "memberLike",
+        "modifiers": ["private"],
+        "format": ["camelCase"],
+        "prefix": ["__"]
+      },
+      {
+        "selector": "memberLike",
+        "modifiers": ["protected"],
+        "format": ["camelCase"],
+        "prefix": ["_"]
+      }
+    ],
+    "@typescript-eslint/typedef": [
+      "error",
+      {
+        "arrayDestructuring": false,
+        "arrowParameter": false,
+        "memberVariableDeclaration": false,
+        "objectDestructuring": false,
+        "parameter": false,
+        "propertyDeclaration": false,
+        "variableDeclaration": false,
+        "variableDeclarationIgnoreFunction": false
+      }
+    ],
+    "quotes": ["error", "single"]
+  }
+}

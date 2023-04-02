@@ -1,42 +1,37 @@
-import IEngine from '../engine/interfaces/IEngine';
-import IKeyboardAdaptor from '../engine/interfaces/IKeyboardAdaptor';
-import IMouseAdaptor from '../engine/interfaces/IMouseAdaptor';
-import IViewportAdaptor from '../engine/interfaces/IViewportAdaptor';
+import { HTML5CanvasViewport, IHTML5CanvasElement } from '@plasmastrapi/html5-canvas';
+import IController from './interfaces/IController';
+import { Index } from '@plasmastrapi/base';
+import { Engine } from '@plasmastrapi/engine';
+import { Stor } from '@plasmastrapi/ecs';
 
-export default class App {
+export default class App<TControllers extends Index<IController>> extends Engine<CanvasImageSource> {
+  public readonly root: IHTML5CanvasElement;
+  public readonly controllers: TControllers;
 
-    public viewport: IViewportAdaptor;
-    public mouse: IMouseAdaptor;
-    public keyboard: IKeyboardAdaptor;
-    public engine: IEngine;
+  public constructor({
+    canvas,
+    controllers,
+    systems,
+  }: {
+    canvas: HTMLCanvasElement;
+    controllers: TControllers;
+    systems: Stor[];
+  }) {
+    super({
+      viewport: new HTML5CanvasViewport({ canvas }),
+      systems,
+    });
+    this.controllers = controllers;
+  }
 
-    private __onLoop: () => void;
-
-    constructor({ viewport, mouse, keyboard, game }
-        : { viewport: IViewportAdaptor, mouse: IMouseAdaptor, keyboard: IKeyboardAdaptor, game: IEngine },
-    ) {
-        this.viewport = viewport;
-        this.mouse = mouse;
-        this.keyboard = keyboard;
-        this.engine = game;
-        this.__onLoop = () => undefined;
+  public init(): void {
+    for (const name in this.controllers) {
+      this.controllers[name].init();
     }
+  }
 
-    public onLoop(onLoop: () => void): void {
-        this.__onLoop = onLoop;
-    }
-
-    public once(): void {
-        this.viewport.refresh();
-        this.mouse.once();
-        this.keyboard.once();
-        this.engine.once();
-        this.engine.draw();
-        this.__onLoop();
-    }
-
-    public start(): void {
-        setInterval(this.once.bind(this), 1000 / 60);
-    }
-
+  public once(): void {
+    super.once();
+    (this.controllers.game as any).once();
+  }
 }

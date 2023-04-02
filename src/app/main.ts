@@ -1,45 +1,50 @@
 import App from './App';
-import Engine from '../engine/Engine';
-import { Entity } from '../engine/Entity';
-import GameController from './GameController';
-import HTML5CanvasKeyboardAdapter from '../html5-canvas/HTML5CanvasKeyboardAdaptor';
-import HTML5CanvasMouseAdaptor from '../html5-canvas/HTML5CanvasMouseAdaptor';
-import { HTML5CanvasViewportAdaptor } from '../html5-canvas/HTML5CanvasViewportAdaptor';
-import { Pose, Shape } from './components';
-import { transformShape } from './geometry';
-import $ from 'jquery';
-import {
-    AccelerationSystem, BooleanAsteroidSubtractorSystem,
-    EphemeralSystem, FPSSystem, FlairSystem, HullSystem,
-    LabelSystem, MissileLauncherSystem, MovementSystem, ShapeSystem, ThrustSystem,
-} from './systems';
+import { BooleanAsteroidSubtractorSystem } from './systems/BooleanAsteroidSubtractorSystem';
+import GameController from './controllers/GameController';
+import InputController from './controllers/InputController';
+import ShipController from './controllers/ShipController';
+import { AnimationSystem, ImageSystem, LabelSystem, LineSystem, PoseSystem, ShapeSystem } from '@plasmastrapi/engine';
+import { AccelerationSystem, VelocitySystem } from '@plasmastrapi/physics';
+import HUDController from './controllers/HUDController';
+import HullSystem from './systems/HullSystem';
+import { FPSSystem } from '@plasmastrapi/diagnostics';
+import ThrusterSystem from './systems/ThrusterSystem';
+import MissileLauncherSystem from './systems/MissileLauncherSystem';
+import EphemeralSystem from './systems/EphemeralSystem';
+import PositionalBoundarySystem from './systems/PositionalBoundarySystem';
 
-const canvas = $('#app-target').get(0) as HTMLCanvasElement;
-canvas.focus();
+const canvas = document.getElementById('app-target') as HTMLCanvasElement;
 canvas.width = 1280;
-canvas.height = 680;
+canvas.height = 720;
+canvas.focus();
 
-const viewport = new HTML5CanvasViewportAdaptor(canvas);
+export const app = new App({
+  canvas,
+  controllers: {
+    game: new GameController(),
+    hud: new HUDController(),
+    input: new InputController({ canvas }),
+    ship: new ShipController(),
+  },
+  systems: [
+    PoseSystem,
+    ShapeSystem,
+    LineSystem,
+    LabelSystem,
+    ImageSystem,
+    AnimationSystem,
+    VelocitySystem,
+    AccelerationSystem,
+    FPSSystem,
 
-const app = new App({
-    viewport,
-    mouse: new HTML5CanvasMouseAdaptor(canvas),
-    keyboard: new HTML5CanvasKeyboardAdapter(canvas),
-    game: new Engine(viewport),
+    PositionalBoundarySystem,
+    ThrusterSystem,
+    HullSystem,
+    BooleanAsteroidSubtractorSystem,
+    MissileLauncherSystem,
+    EphemeralSystem,
+  ],
 });
 
-app.engine.add(AccelerationSystem);
-app.engine.add(ThrustSystem);
-app.engine.add(MovementSystem);
-app.engine.add(HullSystem);
-app.engine.add(BooleanAsteroidSubtractorSystem);
-app.engine.add(LabelSystem);
-app.engine.add(ShapeSystem);
-app.engine.add(FlairSystem);
-app.engine.add(MissileLauncherSystem);
-app.engine.add(EphemeralSystem);
-app.engine.add(FPSSystem);
+app.init();
 app.start();
-
-const gameController = new GameController(app);
-gameController.setup();

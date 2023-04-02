@@ -1,47 +1,51 @@
 {
-    "extends": ["tslint:recommended", "tslint-consistent-codestyle"],
-    "rules": {
-        "no-magic-numbers": false,
-        "trailing-comma": [true, { 
-            "multiline": "always",
-            "singleline": "never"
-        }],
-        "one-line": false,
-        "object-literal-key-quotes": [true, "as-needed"],
-        "object-literal-sort-keys": false,
-        "no-empty-interface": false,
-        "no-var-requires": false,
-        "ordered-imports": [true, {
-            "named-imports-order": "lowercase-last",
-            "import-sources-order": "lowercase-last",
-            "module-source-path": "basename"
-        }],
-        "semicolon": [true, "always"],
-        "variable-name": [false, "always"],
-        "naming-convention": [true,
-            {"type": "member", "format": "camelCase"},
-            {"type": "member", "modifiers": "protected", "prefix": "_", "format": "camelCase"},
-            {"type": "member", "modifiers": "private", "prefix": "__", "format": "camelCase"}
-        ],
-        "only-arrow-functions": false,
-        "no-console": false,
-        "member-access": true,
-        "curly": true,
-        "no-arg": true,
-        "no-conditional-assignment": true,
-        "no-construct": true,
-        "no-duplicate-imports": true,
-        "no-duplicate-variable": true,
-        "no-invalid-template-strings": true,
-        "no-consecutive-blank-lines": true,
-        "arrow-parens": true,
-        "class-name": true,
-        "typedef": [
-            true,
-            "call-signature",
-            "property-declaration"
-        ],
-        "quotemark": [true, "single"],
-        "max-classes-per-file": false
-    }
+  "extends": ["tslint:recommended", "tslint-consistent-codestyle"],
+  "rules": {
+    "no-magic-numbers": false,
+    "trailing-comma": [
+      true,
+      {
+        "multiline": "always",
+        "singleline": "never"
+      }
+    ],
+    "one-line": false,
+    "object-literal-key-quotes": [true, "as-needed"],
+    "object-literal-sort-keys": false,
+    "no-empty-interface": false,
+    "no-var-requires": false,
+    "ordered-imports": [
+      true,
+      {
+        "named-imports-order": "lowercase-last",
+        "import-sources-order": "lowercase-last",
+        "module-source-path": "basename"
+      }
+    ],
+    "semicolon": [true, "always"],
+    "variable-name": [false],
+    "naming-convention": [
+      true,
+      { "type": "member", "format": "camelCase" },
+      { "type": "member", "modifiers": "protected", "prefix": "_", "format": "camelCase" },
+      { "type": "member", "modifiers": "private", "prefix": "__", "format": "camelCase" }
+    ],
+    "only-arrow-functions": false,
+    "no-console": false,
+    "member-access": true,
+    "curly": true,
+    "no-arg": true,
+    "no-conditional-assignment": true,
+    "no-construct": true,
+    "no-duplicate-imports": true,
+    "no-duplicate-variable": true,
+    "no-invalid-template-strings": true,
+    "no-consecutive-blank-lines": true,
+    "no-string-literal": false,
+    "arrow-parens": true,
+    "class-name": true,
+    "typedef": [true, "call-signature", "property-declaration"],
+    "quotemark": [true, "single"],
+    "max-classes-per-file": false
+  }
 }
