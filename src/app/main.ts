@@ -1,7 +1,6 @@
 import App from './App';
 import { BooleanAsteroidSubtractorSystem } from './systems/BooleanAsteroidSubtractorSystem';
 import GameController from './controllers/GameController';
-import InputController from './controllers/InputController';
 import ShipController from './controllers/ShipController';
 import { AnimationSystem, ImageSystem, LabelSystem, LineSystem, PoseSystem, ShapeSystem } from '@plasmastrapi/engine';
 import { AccelerationSystem, VelocitySystem } from '@plasmastrapi/physics';
@@ -12,6 +11,7 @@ import ThrusterSystem from './systems/ThrusterSystem';
 import MissileLauncherSystem from './systems/MissileLauncherSystem';
 import EphemeralSystem from './systems/EphemeralSystem';
 import PositionalBoundarySystem from './systems/PositionalBoundarySystem';
+import { InputController } from '@plasmastrapi/html5-canvas';
 
 const canvas = document.getElementById('app-target') as HTMLCanvasElement;
 canvas.width = 1280;

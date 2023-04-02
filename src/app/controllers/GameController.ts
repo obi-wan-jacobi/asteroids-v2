@@ -1,4 +1,3 @@
-import IController from 'app/interfaces/IController';
 import { getEuclideanDistanceBetweenPoints, IPose, PoseComponent } from '@plasmastrapi/geometry';
 import { Entity } from '@plasmastrapi/ecs';
 import { app } from 'app/main';
@@ -6,6 +5,7 @@ import SetupInputHandler from 'app/input-handlers/SetupInputHandler';
 import ShipInputHandler from 'app/input-handlers/ShipInputHandler';
 import Ship from 'app/entities/Ship';
 import Asteroid from 'app/entities/Asteroid';
+import { IController } from '@plasmastrapi/html5-canvas';
 
 export default class GameController implements IController {
   private __isStarted: boolean;

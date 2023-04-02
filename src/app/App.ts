@@ -1,5 +1,4 @@
-import { HTML5CanvasViewport, IHTML5CanvasElement } from '@plasmastrapi/html5-canvas';
-import IController from './interfaces/IController';
+import { HTML5CanvasViewport, IController, IHTML5CanvasElement } from '@plasmastrapi/html5-canvas';
 import { Index } from '@plasmastrapi/base';
 import { Engine } from '@plasmastrapi/engine';
 import { Stor } from '@plasmastrapi/ecs';

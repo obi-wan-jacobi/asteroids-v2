@@ -1,10 +1,10 @@
+import { IController } from '@plasmastrapi/html5-canvas';
 import { AccelerationComponent, VelocityComponent } from '@plasmastrapi/physics';
 import MissileLauncherComponent from 'app/components/MissileLauncherComponent';
 import ThrusterComponent from 'app/components/ThrusterComponent';
 import Ship from 'app/entities/Ship';
 import { MISSILE_LAUNCHER_STATE } from 'app/enums/MISSILE_LAUNCHER_STATE';
 import { THRUSTER_STATE } from 'app/enums/THRUSTER_STATE';
-import IController from 'app/interfaces/IController';
 import { app } from 'app/main';
 
 export default class ShipController implements IController {

@@ -15,7 +15,7 @@
     "@plasmastrapi/ecs": "^1.0.11",
     "@plasmastrapi/engine": "^1.0.12",
     "@plasmastrapi/geometry": "^1.0.5",
-    "@plasmastrapi/html5-canvas": "^1.0.2",
+    "@plasmastrapi/html5-canvas": "^1.0.3",
     "@plasmastrapi/physics": "^1.0.1",
     "@plasmastrapi/presentation": "^1.0.5",
     "@turf/area": "^6.5.0",

@@ -1,6 +1,5 @@
 import { Index } from '@plasmastrapi/base';
-import { IKeyboardEvent, KEYBOARD_EVENT } from '@plasmastrapi/html5-canvas';
-import InputHandler from 'app/abstracts/InputHandler';
+import { IKeyboardEvent, InputHandler, KEYBOARD_EVENT } from '@plasmastrapi/html5-canvas';
 import { app } from 'app/main';
 
 export default class ShipInputHandler extends InputHandler {

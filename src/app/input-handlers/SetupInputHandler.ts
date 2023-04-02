@@ -1,5 +1,4 @@
-import { IKeyboardEvent, KEYBOARD_EVENT } from '@plasmastrapi/html5-canvas';
-import InputHandler from 'app/abstracts/InputHandler';
+import { IKeyboardEvent, InputHandler, KEYBOARD_EVENT } from '@plasmastrapi/html5-canvas';
 import { app } from '../main';
 
 export default class SetupInputHandler extends InputHandler {
