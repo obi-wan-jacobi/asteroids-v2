@@ -12,7 +12,7 @@
   "dependencies": {
     "@plasmastrapi/base": "^1.0.25",
     "@plasmastrapi/diagnostics": "^1.0.14",
-    "@plasmastrapi/ecs": "^1.0.10",
+    "@plasmastrapi/ecs": "^1.0.11",
     "@plasmastrapi/engine": "^1.0.12",
     "@plasmastrapi/geometry": "^1.0.5",
     "@plasmastrapi/html5-canvas": "^1.0.2",

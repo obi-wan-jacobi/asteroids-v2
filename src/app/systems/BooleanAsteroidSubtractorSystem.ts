@@ -52,19 +52,24 @@ const diffAsteroid = (subtractorShape: IShape, asteroid: Asteroid): void => {
     Polygon,
     GeoJsonProperties
   >;
-  // if (!simple) {
-  //   return asteroid.$destroy();
-  // }
   let geojsons = [simple];
   if (kinks(simple).features.length) {
     geojsons = (unkinkPolygon(simple) as FeatureCollection).features as Array<Feature<Polygon, GeoJsonProperties>>;
   }
   const remainders = geojsons
     .map(fromGeoJSONCoordinatesToShapes)
-    .flatMap((shapes) => shapes)
+    .flat()
+    .filter((remainder) => {
+      const { minX, maxX, minY, maxY } = fromShapeToBoundary(remainder);
+      const epsilon = 30;
+      return !(remainder.vertices.length < 3 || (maxX - minX < epsilon && maxY - minY < epsilon));
+    })
     .sort((shape1, shape2) => {
       return area(fromShapeToGeoJSON(shape2)) - area(fromShapeToGeoJSON(shape1));
     });
+  if (remainders.length === 0) {
+    return asteroid.$destroy();
+  }
   transformAsteroidFragment(asteroid, remainders.shift()!);
   remainders.forEach((remainder) => {
     const fragment = new Asteroid({
@@ -78,16 +83,10 @@ const diffAsteroid = (subtractorShape: IShape, asteroid: Asteroid): void => {
 };
 
 const transformAsteroidFragment = (asteroid: Asteroid, remainder: IShape): void => {
-  const { minX, maxX, minY, maxY } = fromShapeToBoundary(remainder);
-  const epsilon = 30;
-  if (remainder.vertices.length < 3 || (maxX - minX < epsilon && maxY - minY < epsilon)) {
-    return asteroid.$destroy();
-  }
   const geojson = fromShapeToGeoJSON(remainder);
   const result = centerOfMass(geojson);
   const [x, y] = result.geometry.coordinates;
-  const shape = asteroid.$get(ShapeComponent)!;
-  shape.mutate({
+  asteroid.$patch(ShapeComponent, {
     vertices: remainder.vertices.map((vertex) => ({
       x: vertex.x - x,
       y: vertex.y - y,
