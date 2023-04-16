@@ -1,6 +1,7 @@
-import { IPose, ShapeComponent } from '@plasmastrapi/geometry';
+import { ShapeComponent, StyleComponent } from '@plasmastrapi/ecs';
+import { COLOUR } from '@plasmastrapi/engine';
+import { IPose } from '@plasmastrapi/geometry';
 import { VelocityComponent } from '@plasmastrapi/physics';
-import { COLOUR, StyleComponent } from '@plasmastrapi/presentation';
 import BaseEntity from 'app/abstracts/BaseEntity';
 import EphemeralComponent from 'app/components/EphemeralComponent';
 

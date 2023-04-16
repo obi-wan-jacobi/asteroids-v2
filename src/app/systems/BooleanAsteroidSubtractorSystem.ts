@@ -1,34 +1,32 @@
-import unkinkPolygon from '@turf/unkink-polygon';
-import { Feature, FeatureCollection, GeoJsonProperties, Polygon } from 'geojson';
-import difference from '@turf/difference';
-import simplify from '@turf/simplify';
-import kinks from '@turf/kinks';
-import area from '@turf/area';
-import { IComponentMaster, IEntityMaster, System } from '@plasmastrapi/ecs';
+import { IComponentMaster, IEntityMaster, PoseComponent, ShapeComponent, System } from '@plasmastrapi/ecs';
 import {
+  area,
+  booleanContains,
+  booleanOverlap,
+  centerOfMass,
+  difference,
   fromGeoJSONCoordinatesToShapes,
   fromShapeToBoundary,
   fromShapeToGeoJSON,
+  geojson,
   IShape,
-  PoseComponent,
-  ShapeComponent,
+  kinks,
+  simplify,
   transformShape,
+  unkinkPolygon,
 } from '@plasmastrapi/geometry';
 import Asteroid from 'app/entities/Asteroid';
 import BooleanAsteroidSubtractorComponent from 'app/components/BooleanAsteroidSubtractorComponent';
-const booleanOverlap = require('@turf/boolean-overlap').default;
-const booleanContains = require('@turf/boolean-contains').default;
-const centerOfMass = require('@turf/center-of-mass').default;
 
 export class BooleanAsteroidSubtractorSystem extends System {
   public once({ entities, components }: { entities: IEntityMaster; components: IComponentMaster }): void {
     components.forEvery(BooleanAsteroidSubtractorComponent)((subtractor) => {
       entities.forEvery(Asteroid)((asteroid: Asteroid) => {
         const subtractorShape = transformShape(
-          subtractor.$entity.$copy(ShapeComponent)!,
-          subtractor.$entity.$copy(PoseComponent)!,
+          subtractor.$entity.$copy(ShapeComponent),
+          subtractor.$entity.$copy(PoseComponent),
         );
-        const asteroidShape = transformShape(asteroid.$copy(ShapeComponent)!, asteroid.$copy(PoseComponent)!);
+        const asteroidShape = transformShape(asteroid.$copy(ShapeComponent), asteroid.$copy(PoseComponent));
         const subtractorGeoJSON = fromShapeToGeoJSON(subtractorShape);
         const asteroidGeoJSON = fromShapeToGeoJSON(asteroidShape);
         if (booleanOverlap(subtractorGeoJSON, asteroidGeoJSON) || booleanContains(subtractorGeoJSON, asteroidGeoJSON)) {
@@ -42,19 +40,21 @@ export class BooleanAsteroidSubtractorSystem extends System {
 const diffAsteroid = (subtractorShape: IShape, asteroid: Asteroid): void => {
   const subtractorGeoJSON = fromShapeToGeoJSON(subtractorShape);
   const asteroidGeoJSON = fromShapeToGeoJSON(
-    transformShape(asteroid.$copy(ShapeComponent)!, asteroid.$copy(PoseComponent)!),
+    transformShape(asteroid.$copy(ShapeComponent), asteroid.$copy(PoseComponent)),
   );
   const diff = difference(asteroidGeoJSON, subtractorGeoJSON);
   if (!diff) {
     return asteroid.$destroy();
   }
-  const simple = simplify(diff, { tolerance: 1, highQuality: false, mutate: true }) as Feature<
-    Polygon,
-    GeoJsonProperties
+  const simple = simplify(diff, { tolerance: 1, highQuality: false, mutate: true }) as geojson.Feature<
+    geojson.Polygon,
+    geojson.GeoJsonProperties
   >;
   let geojsons = [simple];
   if (kinks(simple).features.length) {
-    geojsons = (unkinkPolygon(simple) as FeatureCollection).features as Array<Feature<Polygon, GeoJsonProperties>>;
+    geojsons = (unkinkPolygon(simple) as geojson.FeatureCollection).features as Array<
+      geojson.Feature<geojson.Polygon, geojson.GeoJsonProperties>
+    >;
   }
   const remainders = geojsons
     .map(fromGeoJSONCoordinatesToShapes)

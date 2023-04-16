@@ -2,7 +2,7 @@ import App from './App';
 import { BooleanAsteroidSubtractorSystem } from './systems/BooleanAsteroidSubtractorSystem';
 import GameController from './controllers/GameController';
 import ShipController from './controllers/ShipController';
-import { AnimationSystem, ImageSystem, LabelSystem, LineSystem, PoseSystem, ShapeSystem } from '@plasmastrapi/engine';
+import { LabelSystem, LineSystem, PoseSystem, ShapeSystem } from '@plasmastrapi/engine';
 import { AccelerationSystem, VelocitySystem } from '@plasmastrapi/physics';
 import HUDController from './controllers/HUDController';
 import DestructibleHullSystem from './systems/DestructibleHullSystem';
@@ -31,8 +31,6 @@ export const app = new App({
     ShapeSystem,
     LineSystem,
     LabelSystem,
-    ImageSystem,
-    AnimationSystem,
     VelocitySystem,
     AccelerationSystem,
     FPSSystem,

@@ -1,5 +1,5 @@
-import { Entity } from '@plasmastrapi/ecs';
-import { IPose, PoseComponent, ShapeComponent } from '@plasmastrapi/geometry';
+import { Entity, PoseComponent, ShapeComponent } from '@plasmastrapi/ecs';
+import { IPose } from '@plasmastrapi/geometry';
 import BooleanAsteroidSubtractorComponent from 'app/components/BooleanAsteroidSubtractorComponent';
 import EphemeralComponent from 'app/components/EphemeralComponent';
 

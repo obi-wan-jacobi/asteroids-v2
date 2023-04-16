@@ -27,11 +27,11 @@ export default class ShipController implements IController {
   }
 
   public turnLeft(): void {
-    this.__ship.$patch(VelocityComponent, { w: -Math.PI / 512 });
+    this.__ship.$patch(VelocityComponent, { w: (-Math.PI / 512) * 1000 });
   }
 
   public stopTurningLeft(): void {
-    const velocity = this.__ship.$copy(VelocityComponent)!;
+    const velocity = this.__ship.$copy(VelocityComponent);
     if (velocity.w < 0) {
       velocity.w = 0;
       this.__ship.$patch(VelocityComponent, velocity);
@@ -39,11 +39,11 @@ export default class ShipController implements IController {
   }
 
   public turnRight(): void {
-    this.__ship.$patch(VelocityComponent, { w: Math.PI / 512 });
+    this.__ship.$patch(VelocityComponent, { w: (Math.PI / 512) * 1000 });
   }
 
   public stopTurningRight(): void {
-    const velocity = this.__ship.$copy(VelocityComponent)!;
+    const velocity = this.__ship.$copy(VelocityComponent);
     if (velocity.w > 0) {
       velocity.w = 0;
       this.__ship.$patch(VelocityComponent, velocity);

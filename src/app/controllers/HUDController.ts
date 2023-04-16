@@ -1,7 +1,8 @@
-import { PoseComponent, transformShape } from '@plasmastrapi/geometry';
-import { COLOUR, LabelComponent } from '@plasmastrapi/presentation';
+import { transformShape } from '@plasmastrapi/geometry';
 import { app } from 'app/main';
 import { HTML5CanvasElement, IController } from '@plasmastrapi/html5-canvas';
+import { LabelComponent, PoseComponent } from '@plasmastrapi/ecs';
+import { COLOUR } from '@plasmastrapi/engine';
 
 export default class HUDController implements IController {
   public init(): void {}

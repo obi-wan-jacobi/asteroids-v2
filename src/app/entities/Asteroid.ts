@@ -1,6 +1,7 @@
-import { IPoint, IPose, ShapeComponent } from '@plasmastrapi/geometry';
+import { IPoint, IPose } from '@plasmastrapi/geometry';
 import { VelocityComponent } from '@plasmastrapi/physics';
 import BaseEntity from '../abstracts/BaseEntity';
+import { ShapeComponent } from '@plasmastrapi/ecs';
 
 export default class Asteroid extends BaseEntity {
   constructor({
@@ -25,9 +26,9 @@ export default class Asteroid extends BaseEntity {
     }
     this.$add(ShapeComponent, { vertices });
     this.$add(VelocityComponent, {
-      x: 0.05 - 0.1 * Math.random(),
-      y: 0.05 - 0.1 * Math.random(),
-      w: Math.PI / 4096 - (Math.random() * Math.PI) / 2048,
+      x: (0.05 - 0.1 * Math.random()) * 1000,
+      y: (0.05 - 0.1 * Math.random()) * 1000,
+      w: (Math.PI / 4096 - (Math.random() * Math.PI) / 2048) * 1000,
     });
   }
 }

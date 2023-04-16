@@ -1,6 +1,5 @@
-import { IPose, PoseComponent, ShapeComponent } from '@plasmastrapi/geometry';
+import { IPose } from '@plasmastrapi/geometry';
 import { VelocityComponent } from '@plasmastrapi/physics';
-import { COLOUR } from '@plasmastrapi/presentation';
 import BaseEntity from 'app/abstracts/BaseEntity';
 import ExplosionArea from './ExplosionArea';
 import ExplosionVisual from './ExplosionVisual';
@@ -8,6 +7,8 @@ import DestructibleHullComponent from 'app/components/DestructibleHullComponent'
 import EphemeralComponent from 'app/components/EphemeralComponent';
 import ThrusterComponent from 'app/components/ThrusterComponent';
 import { THRUSTER_STATE } from 'app/enums/THRUSTER_STATE';
+import { PoseComponent, ShapeComponent } from '@plasmastrapi/ecs';
+import { COLOUR } from '@plasmastrapi/engine';
 
 export default class Missile extends BaseEntity {
   constructor({ pose }: { pose: IPose }) {
@@ -18,8 +19,8 @@ export default class Missile extends BaseEntity {
       a: pose.a,
     });
     this.$add(VelocityComponent, {
-      x: 1.0 * Math.cos(pose.a),
-      y: 1.0 * Math.sin(pose.a),
+      x: 1000.0 * Math.cos(pose.a),
+      y: 1000.0 * Math.sin(pose.a),
       w: 0,
     });
     this.$add(DestructibleHullComponent, {});
@@ -42,18 +43,18 @@ export default class Missile extends BaseEntity {
 
   public $destroy(): void {
     super.$destroy();
-    const pose = this.$copy(PoseComponent)!;
+    const pose = this.$copy(PoseComponent);
     new ExplosionArea({ pose, radius: 50 });
     new ExplosionVisual({
       pose,
       radius: 50,
-      spin: -Math.PI / 1024,
+      spin: (-Math.PI / 1024) * 1000,
       colour: COLOUR.RGBA_YELLOW,
     });
     new ExplosionVisual({
       pose,
       radius: 48,
-      spin: Math.PI / 1024,
+      spin: (Math.PI / 1024) * 1000,
       colour: COLOUR.RGBA_BLUE,
     });
   }

@@ -1,8 +1,8 @@
-import { IComponentMaster } from '@plasmastrapi/ecs';
-import { IViewport, RenderingSystem } from '@plasmastrapi/engine';
-import { PoseComponent, transformShape } from '@plasmastrapi/geometry';
+import { IComponentMaster, PoseComponent } from '@plasmastrapi/ecs';
+import { COLOUR, RenderingSystem } from '@plasmastrapi/engine';
+import { transformShape } from '@plasmastrapi/geometry';
 import { AccelerationComponent } from '@plasmastrapi/physics';
-import { COLOUR } from '@plasmastrapi/presentation';
+import { IViewport } from '@plasmastrapi/viewport';
 import ThrusterComponent from 'app/components/ThrusterComponent';
 import ThrustStream from 'app/entities/ThrustStream';
 import { THRUSTER_STATE } from 'app/enums/THRUSTER_STATE';
@@ -15,12 +15,12 @@ export default class ThrusterSystem extends RenderingSystem {
         return;
       }
       const entity = component.$entity;
-      const factor = 0.0003;
-      const pose = entity.$copy(PoseComponent)!;
+      const accelerationMagnitude = 300.0;
+      const pose = entity.$copy(PoseComponent);
       if (entity.$has(AccelerationComponent)) {
-        const acceleration = entity.$copy(AccelerationComponent)!;
-        acceleration.x = factor * Math.cos(pose.a);
-        acceleration.y = factor * Math.sin(pose.a);
+        const acceleration = entity.$copy(AccelerationComponent);
+        acceleration.x = accelerationMagnitude * Math.cos(pose.a);
+        acceleration.y = accelerationMagnitude * Math.sin(pose.a);
         entity.$patch(AccelerationComponent, acceleration);
       }
       if (thruster.isCreateThrustStream) {
@@ -40,7 +40,7 @@ export default class ThrusterSystem extends RenderingSystem {
       if (thruster.state !== THRUSTER_STATE.ACCELERATE) {
         return;
       }
-      const pose = component.$entity.$copy(PoseComponent)!;
+      const pose = component.$entity.$copy(PoseComponent);
       const flairShape = {
         vertices: [
           { x: thruster.offset.x, y: -thruster.width / 2 },
