@@ -1,4 +1,4 @@
-import { getEuclideanDistanceBetweenPoints, IPose } from '@plasmastrapi/geometry';
+import { IPose, Point } from '@plasmastrapi/geometry';
 import { Entity, PoseComponent } from '@plasmastrapi/ecs';
 import { app } from 'app/main';
 import SetupInputHandler from 'app/input-handlers/SetupInputHandler';
@@ -57,7 +57,7 @@ export default class GameController implements IController {
   private __spawnShipAtCenterWhenSafe(): void {
     let isItSafeToSpawnShip = true;
     app.entities.forEvery(Asteroid)((asteroid) => {
-      if (getEuclideanDistanceBetweenPoints({ x: 640, y: 340 }, asteroid.$copy(PoseComponent)) < 100) {
+      if (Point.getEuclideanDistanceBetweenPoints({ x: 640, y: 340 }, asteroid.$copy(PoseComponent)) < 100) {
         isItSafeToSpawnShip = false;
       }
     });
@@ -79,7 +79,7 @@ export default class GameController implements IController {
   private __spawnAsteroidAwayFromShip(): void {
     let pose = this.__generateAsteroidPose(1280, 720);
     const ship = app.entities.first(Ship)!;
-    while (getEuclideanDistanceBetweenPoints(ship.$copy(PoseComponent), pose) < 300) {
+    while (Point.getEuclideanDistanceBetweenPoints(ship.$copy(PoseComponent), pose) < 300) {
       pose = this.__generateAsteroidPose(1280, 720);
     }
     new Asteroid({

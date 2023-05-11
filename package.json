@@ -10,18 +10,18 @@
     "serve": "npm run build && webpack-dev-server"
   },
   "dependencies": {
-    "@plasmastrapi/animation": "^1.0.2",
-    "@plasmastrapi/base": "^1.0.25",
-    "@plasmastrapi/diagnostics": "^1.0.17",
-    "@plasmastrapi/ecs": "^1.0.20",
-    "@plasmastrapi/engine": "^1.0.21",
-    "@plasmastrapi/geometry": "^1.0.14",
-    "@plasmastrapi/html5-canvas": "^1.0.9",
-    "@plasmastrapi/physics": "^1.0.7",
-    "@plasmastrapi/viewport": "^1.0.0"
+    "@plasmastrapi/animation": "^1.0.3",
+    "@plasmastrapi/base": "^1.0.29",
+    "@plasmastrapi/diagnostics": "^1.0.19",
+    "@plasmastrapi/ecs": "^1.0.21",
+    "@plasmastrapi/engine": "^1.0.24",
+    "@plasmastrapi/geometry": "^1.0.22",
+    "@plasmastrapi/html5-canvas": "^1.0.12",
+    "@plasmastrapi/physics": "^1.0.9",
+    "@plasmastrapi/viewport": "^1.0.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.21.4",
+    "@babel/core": "^7.21.8",
     "@types/node": "^10.17.60",
     "@typescript-eslint/eslint-plugin": "^4.28.3",
     "@typescript-eslint/parser": "^4.28.3",
@@ -32,15 +32,15 @@
     "eslint-cli": "^1.1.1",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.1",
-    "prettier": "^2.8.7",
+    "prettier": "^2.8.8",
     "raw-loader": "^4.0.2",
     "rimraf": "^2.7.1",
     "ts-loader": "^9.4.2",
     "tsconfig-paths-webpack-plugin": "^3.5.1",
     "typescript": "^3.9.10",
-    "webpack": "^5.79.0",
+    "webpack": "^5.82.1",
     "webpack-cli": "^4.8.0",
-    "webpack-dev-server": "^4.13.3"
+    "webpack-dev-server": "^4.15.0"
   },
   "author": "obi-wan-jacobi",
   "license": ""

@@ -5,14 +5,13 @@ import {
   booleanOverlap,
   centerOfMass,
   difference,
-  fromGeoJSONCoordinatesToShapes,
-  fromShapeToBoundary,
-  fromShapeToGeoJSON,
+  GBOX,
   geojson,
+  GeoJSON,
   IShape,
   kinks,
+  Shape,
   simplify,
-  transformShape,
   unkinkPolygon,
 } from '@plasmastrapi/geometry';
 import Asteroid from 'app/entities/Asteroid';
@@ -22,13 +21,13 @@ export class BooleanAsteroidSubtractorSystem extends System {
   public once({ entities, components }: { entities: IEntityMaster; components: IComponentMaster }): void {
     components.forEvery(BooleanAsteroidSubtractorComponent)((subtractor) => {
       entities.forEvery(Asteroid)((asteroid: Asteroid) => {
-        const subtractorShape = transformShape(
+        const subtractorShape = Shape.transform(
           subtractor.$entity.$copy(ShapeComponent),
           subtractor.$entity.$copy(PoseComponent),
         );
-        const asteroidShape = transformShape(asteroid.$copy(ShapeComponent), asteroid.$copy(PoseComponent));
-        const subtractorGeoJSON = fromShapeToGeoJSON(subtractorShape);
-        const asteroidGeoJSON = fromShapeToGeoJSON(asteroidShape);
+        const asteroidShape = Shape.transform(asteroid.$copy(ShapeComponent), asteroid.$copy(PoseComponent));
+        const subtractorGeoJSON = GeoJSON.createFromShape(subtractorShape);
+        const asteroidGeoJSON = GeoJSON.createFromShape(asteroidShape);
         if (booleanOverlap(subtractorGeoJSON, asteroidGeoJSON) || booleanContains(subtractorGeoJSON, asteroidGeoJSON)) {
           return diffAsteroid(subtractorShape, asteroid);
         }
@@ -38,9 +37,9 @@ export class BooleanAsteroidSubtractorSystem extends System {
 }
 
 const diffAsteroid = (subtractorShape: IShape, asteroid: Asteroid): void => {
-  const subtractorGeoJSON = fromShapeToGeoJSON(subtractorShape);
-  const asteroidGeoJSON = fromShapeToGeoJSON(
-    transformShape(asteroid.$copy(ShapeComponent), asteroid.$copy(PoseComponent)),
+  const subtractorGeoJSON = GeoJSON.createFromShape(subtractorShape);
+  const asteroidGeoJSON = GeoJSON.createFromShape(
+    Shape.transform(asteroid.$copy(ShapeComponent), asteroid.$copy(PoseComponent)),
   );
   const diff = difference(asteroidGeoJSON, subtractorGeoJSON);
   if (!diff) {
@@ -57,15 +56,15 @@ const diffAsteroid = (subtractorShape: IShape, asteroid: Asteroid): void => {
     >;
   }
   const remainders = geojsons
-    .map(fromGeoJSONCoordinatesToShapes)
+    .map(Shape.createFromGeoJSON)
     .flat()
     .filter((remainder) => {
-      const { minX, maxX, minY, maxY } = fromShapeToBoundary(remainder);
+      const { v1, v3 } = GBOX.create(remainder);
       const epsilon = 30;
-      return !(remainder.vertices.length < 3 || (maxX - minX < epsilon && maxY - minY < epsilon));
+      return !(remainder.vertices.length < 3 || (v3.x - v1.x < epsilon && v3.y - v1.y < epsilon));
     })
     .sort((shape1, shape2) => {
-      return area(fromShapeToGeoJSON(shape2)) - area(fromShapeToGeoJSON(shape1));
+      return area(GeoJSON.createFromShape(shape2)) - area(GeoJSON.createFromShape(shape1));
     });
   if (remainders.length === 0) {
     return asteroid.$destroy();
@@ -83,7 +82,7 @@ const diffAsteroid = (subtractorShape: IShape, asteroid: Asteroid): void => {
 };
 
 const transformAsteroidFragment = (asteroid: Asteroid, remainder: IShape): void => {
-  const geojson = fromShapeToGeoJSON(remainder);
+  const geojson = GeoJSON.createFromShape(remainder);
   const result = centerOfMass(geojson);
   const [x, y] = result.geometry.coordinates;
   asteroid.$patch(ShapeComponent, {

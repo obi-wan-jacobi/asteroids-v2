@@ -1,8 +1,8 @@
-import { transformShape } from '@plasmastrapi/geometry';
 import { app } from 'app/main';
 import { HTML5CanvasElement, IController } from '@plasmastrapi/html5-canvas';
 import { LabelComponent, PoseComponent } from '@plasmastrapi/ecs';
 import { COLOUR } from '@plasmastrapi/engine';
+import { Shape } from '@plasmastrapi/geometry';
 
 export default class HUDController implements IController {
   public init(): void {}
@@ -24,7 +24,7 @@ export default class HUDController implements IController {
     };
     for (let i = 0; i < lives; i++) {
       const pose = { x: 20 + 22 * i, y: 30, a: -Math.PI / 2 };
-      const transform = transformShape(shipShape, pose);
+      const transform = Shape.transform(shipShape, pose);
       app.viewport.drawShape({
         path: transform.vertices,
         style: { colour: COLOUR.RGBA_WHITE, fill: COLOUR.RGBA_0, opacity: 1, zIndex: 0 },

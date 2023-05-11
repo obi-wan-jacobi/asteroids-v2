@@ -1,6 +1,6 @@
 import { IComponentMaster, PoseComponent } from '@plasmastrapi/ecs';
 import { COLOUR, RenderingSystem } from '@plasmastrapi/engine';
-import { transformShape } from '@plasmastrapi/geometry';
+import { Shape } from '@plasmastrapi/geometry';
 import { AccelerationComponent } from '@plasmastrapi/physics';
 import { IViewport } from '@plasmastrapi/viewport';
 import ThrusterComponent from 'app/components/ThrusterComponent';
@@ -48,7 +48,7 @@ export default class ThrusterSystem extends RenderingSystem {
           { x: thruster.offset.x, y: thruster.width / 2 },
         ],
       };
-      const transform = transformShape(flairShape, pose);
+      const transform = Shape.transform(flairShape, pose);
       viewport.drawLine({
         path: transform.vertices,
         style: { colour: COLOUR.RGBA_RED, fill: COLOUR.RGBA_0, opacity: 1, zIndex: 0 },
